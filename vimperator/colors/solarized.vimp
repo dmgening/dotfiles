@@ -1,0 +1,35 @@
+" ==Vimperator_Color_Scheme==
+" name: Solarized
+" ==Solarized_Colorscheme_Settings==
+
+$base03:    #002b36;
+$base02:    #073642;
+$base01:    #586e75;
+$base00:    #657b83;
+$base0:     #839496;
+$base1:     #93a1a1;
+$base2:     #eee8d5;
+$base3:     #fdf6e3;
+$yellow:    #b58900;
+$orange:    #cb4b16;
+$red:       #dc322f;
+$magenta:   #d33682;
+$violet:    #6c71c4;
+$blue:      #268bd2;
+$cyan:      #2aa198;
+$green:     #859900;
+
+"StatusLine Settings
+hi StatusLine	color: #586e75; background: #073642; font-size: 8pt;
+
+"CmdLine settings
+hi Normal               color: #586e75; background: #073642; font-size: 9pt;
+hi CmdLine              color: #586e75; background: #073642; font-size: 9pt;
+hi CompDesc             color: #859900; background: #073642; font-size: 9pt; width: 50%;
+hi CompItem[selected]   color: #268bd2; background: #002b36;
+hi CompMsg              font-style: italic; margin-left: 12px;
+hi CompResult           width: 45%; overflow: hidden;font-size: 10pt;
+hi CompTitle            color: #586e75; background: #073642; 
+hi CompTitle>*          padding: 0 .5ex;
+hi CompIcon             width: 0px; min-width: 0px; visibility: hidden; display: inline-block; margin-right: .5ex;
+hi Filter               color: #586e75; background: #073642;
