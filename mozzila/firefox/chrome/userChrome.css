@@ -1,5 +1,5 @@
 * {
-    font-family: terminus !important;
+    font-family: Droid Sans Mono !important;
 	font-size: 10pt !important;
 }
 
@@ -71,7 +71,7 @@ tabs#tabbrowser-tabs {
 	margin-left: 3px !important;
 	margin-right: 3px !important;
 	margin-top: 2px !important;
-	font-size: 11px !important;
+	margin-bottom: 2px !important;
 }
 
 #urlbar dropmarker,
