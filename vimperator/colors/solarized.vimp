@@ -2,34 +2,41 @@
 " name: Solarized
 " ==Solarized_Colorscheme_Settings==
 
-$base03:    #002b36;
-$base02:    #073642;
-$base01:    #586e75;
-$base00:    #657b83;
-$base0:     #839496;
-$base1:     #93a1a1;
-$base2:     #eee8d5;
-$base3:     #fdf6e3;
-$yellow:    #b58900;
-$orange:    #cb4b16;
-$red:       #dc322f;
-$magenta:   #d33682;
-$violet:    #6c71c4;
-$blue:      #268bd2;
-$cyan:      #2aa198;
-$green:     #859900;
-
 "StatusLine Settings
-hi StatusLine	color: #586e75; background: #073642; font-size: 8pt;
+hi StatusLine	color: #586e75; background: #002b36; font-size: 10pt;
 
 "CmdLine settings
-hi Normal               color: #586e75; background: #073642; font-size: 9pt;
-hi CmdLine              color: #586e75; background: #073642; font-size: 9pt;
-hi CompDesc             color: #859900; background: #073642; font-size: 9pt; width: 50%;
-hi CompItem[selected]   color: #268bd2; background: #002b36;
+hi Normal               color: #586e75; background: #002b36; font-size: 10pt;
+hi CmdLine              color: #859900; background: #002b36; font-size: 10pt;	
+hi CompDesc             color: #586e75; background: #002b36; font-size: 10pt;
+hi CompItem[selected]   color: #268bd2; background: #002b36; font-weight: bold;
 hi CompMsg              font-style: italic; margin-left: 12px;
 hi CompResult           width: 45%; overflow: hidden;font-size: 10pt;
-hi CompTitle            color: #586e75; background: #073642; 
+hi CompTitle            color: #d33682; background: #002b36; 
 hi CompTitle>*          padding: 0 .5ex;
-hi CompIcon             width: 0px; min-width: 0px; visibility: hidden; display: inline-block; margin-right: .5ex;
-hi Filter               color: #586e75; background: #073642;
+hi CompIcon             display: none;
+hi Filter               color: #586e75; background: #002b36; font-weight: bold;
+
+"Alets
+hi Bell                 border: 0 none; background-color: #002b36;
+hi ErrorMsg             color: #dc322f; background: #002b36;
+
+"Other important stuff
+hi InfoMsg              color: #586e75; background: #002b36;
+hi Message              white-space: normal; min-width: 100%; padding-left: 2em; text-indent: -2em; display: block;
+hi WarningMsg           color: #b58900; background: #002b36;
+hi ModeMsg              color: #586e75; background: #002b36; "CmdLine when Not in Use
+hi MoreMsg              color: #586e75; background: #002b36;
+hi NonText              color: #268bd2; min-height: 16px; padding-left: 2px;
+hi Question             color: #586e75; background: #002b36;
+hi Function             color: #cb4b16; background: #002b36;
+hi Number               color: #cb4b16; background: #002b36;
+hi String               color: #cb4b16; background: #002b36;
+hi Tag                  color: #cb4b16; background: #002b36;
+hi Title                color: #586e75; background: #002b36;
+hi URL                  text-decoration: none; color: #268bd2; background: inherit;
+hi URL:hover            text-decoration: underline; cursor: pointer;
+hi LineNr               color: #cb4b16; background: #002b36;
+
+"Fonts
+hi PromptText 	width: 0px;
