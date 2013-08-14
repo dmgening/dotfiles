@@ -27,7 +27,6 @@ import XMonad.Layout.MagicFocus
 import XMonad.Layout.WindowNavigation
 import XMonad.Layout.WindowSwitcherDecoration
 import XMonad.Layout.DraggingVisualizer
-
 import XMonad.Hooks.ManageHelpers
 import XMonad.Hooks.ManageDocks
 
@@ -48,6 +47,7 @@ import XMonad.Prompt.Man
 
 -- Keyboard & Mouse
 import XMonad.Util.Cursor
+import XMonad.Actions.MouseResize
 import Graphics.X11.ExtraTypes.XF86
 
 -- System
@@ -61,6 +61,7 @@ import qualified Data.Map as M
 
 -- Utility
 import XMonad.Hooks.SetWMName
+import XMonad.Actions.GridSelect
 
 -- ------------------------------------------------------------------
 -- Look & Feel
@@ -119,6 +120,24 @@ myXPConfig = defaultXPConfig
 	, historyFilter     = deleteConsecutive
 	}
 
+-- GridSelect color scheme
+myColorizer :: Window -> Bool -> X (String, String)
+myColorizer = colorRangeFromClassName
+	(0x00,0x00,0x00) --lowest inactive bg
+	(0x1C,0x1C,0x1C) --highest inactive bg
+	(0x44,0xAA,0xCC) --active bg
+	(0xBB,0xBB,0xBB) --inactive fg
+	(0x00,0x00,0x00) --active fg
+
+-- GridSelect theme
+myGSConfig :: t -> GSConfig Window
+myGSConfig colorizer = (buildDefaultGSConfig myColorizer)
+	{ gs_cellheight  = 50
+	, gs_cellwidth   = 200
+	, gs_cellpadding = 10
+	, gs_font        = myFont
+	}
+
 -- ------------------------------------------------------------------
 -- Workspaces
 -- ------------------------------------------------------------------
@@ -147,8 +166,6 @@ myManageHook = composeAll . concat $
 		myWebS			= ["Firefox","Chromium","Opera"]
 		myCodeS			= ["subl3","emacs"]
 
-
-
 ---------------------------------------------------------------------
 -- Other Hooks
 ---------------------------------------------------------------------
@@ -171,11 +188,36 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
 	, ((modMask .|. shiftMask,	xK_r),		manPrompt myXPConfig)
 	
 	, ((modMask .|. shiftMask,	xK_c),		kill)
+	, ((modMask, 				xK_j), 		windows W.focusDown)
+	, ((modMask, 				xK_k), 		windows W.focusUp)
+	, ((modMask, 				xK_m), 		windows W.focusMaster)
+	, ((modMask .|. shiftMask, 	xK_j), 		windows W.swapDown)
+	, ((modMask .|. shiftMask, 	xK_k), 		windows W.swapUp)
+	, ((modMask .|. shiftMask, 	xK_m), 		windows W.swapMaster)
+	, ((modMask, 				xK_g), 		goToSelected $ myGSConfig myColorizer) 
+
+	, ((modMask, 				xK_h), 		sendMessage Shrink)
+	, ((modMask, 				xK_l), 		sendMessage Expand)
+	, ((modMask .|. shiftMask, 	xK_h), 		sendMessage MirrorShrink)
+	, ((modMask .|. shiftMask, 	xK_l), 		sendMessage MirrorExpand)
+
 	, ((modMask .|. shiftMask, 	xK_Return), spawn $ XMonad.terminal conf)
 	] ++ 
 	[ ((m .|. modMask, k), windows $ f i)                                                        --Switch to n workspaces and send client to n workspaces
 	  | (i, k) <- zip (XMonad.workspaces conf) ([xK_1 .. xK_9])
 	  , (f, m) <- [(W.greedyView, 0), (W.shift, shiftMask)]
+	] ++
+	[ ((m .|. modMask, key), screenWorkspace sc >>= flip whenJust (windows . f))                 --Switch to n screens and send client to n screens
+	  | (key, sc) <- zip [xK_u, xK_i, xK_o] [0..]
+	  , (f, m) <- [(W.view, 0), (W.shift, shiftMask)]
+	]
+
+-- Mouse bindings
+myMouseBindings :: XConfig Layout -> M.Map (KeyMask, Button) (Window -> X ())
+myMouseBindings (XConfig {XMonad.modMask = modMask}) = M.fromList $
+	[ ((modMask, button1), (\w -> focus w >> mouseMoveWindow w >> windows W.shiftMaster)) --Set the window to floating mode and move by dragging
+	, ((modMask, button2), (\w -> focus w >> windows W.shiftMaster))                      --Raise the window to the top of the stack
+	, ((modMask, button3), (\w -> focus w >> Flex.mouseResizeWindow w))                   --Set the window to floating mode and resize by dragging
 	]
 
 ---------------------------------------------------------------------
