@@ -106,11 +106,11 @@ clGreen     = "#859900"
 displayX = 1920
 displayY = 1080
 
-dockHeigth = 20
+dockHeigth = 16
 dockSepTop = 950
 dockSepBot = 400
 
-boxHeight      = 16
+boxHeight      = 12
 boxLeftIcon    = "/home/dmgening/.xmonad/icons/boxleft.xbm"   --left icon of dzen logger boxes
 boxLeftIcon2   = "/home/dmgening/.xmonad/icons/boxleft2.xbm"  --left icon2 of dzen logger boxes
 boxRightIcon   = "/home/dmgening/.xmonad/icons/boxright.xbm"  --right icon of dzen logger boxes
