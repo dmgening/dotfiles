@@ -77,6 +77,7 @@ import XMonad.Hooks.UrgencyHook
 import XMonad.Hooks.DynamicLog
 import XMonad.Util.Loggers
 import XMonad.Util.Run (spawnPipe)
+import XMonad.Util.Timer
 
 -- ------------------------------------------------------------------
 -- Look & Feel
@@ -256,7 +257,7 @@ green2BBoxPP = BoxPP
 -- Dzen logger clickable areas
 calendarCA :: CA
 calendarCA = CA
-	{ leftClickCA   = "/home/nnoell/bin/dzencal.sh"
+	{ leftClickCA   = "/home/dmgening/.bin/dzencal.sh"
 	, middleClickCA = ""
 	, rightClickCA  = ""
 	, wheelUpCA     = ""
@@ -515,12 +516,35 @@ myManageHook = composeAll . concat $
 		myIgnores		= ["desktop","desktop_window"]
 		myWebS			= ["Firefox","Chromium","Opera"]
 		myCodeS			= ["subl3","emacs"]
+---------------------------------------------------------------------
+-- Handle Event Hook
+---------------------------------------------------------------------
+
+-- wrapper for the Timer id, so it can be stored as custom mutable state
+data TidState = TID TimerId deriving Typeable
+
+instance ExtensionClass TidState where
+	initialValue = TID 0
+
+-- Handle event hook
+myHandleEventHook = docksEventHook <+> clockEventHook <+> handleTimerEvent <+> notFocusFloat where
+	clockEventHook e = do                 --thanks to DarthFennec
+		(TID t) <- XS.get                 --get the recent Timer id
+		handleTimer t e $ do              --run the following if e matches the id
+		    startTimer 1 >>= XS.put . TID --restart the timer, store the new id
+		    ask >>= logHook . config      --get the loghook and run it
+		    return Nothing                --return required type
+		return $ All True                 --return required type
+	notFocusFloat = followOnlyIf (fmap not isFloat) where --Do not focusFollowMouse on Float layout
+		isFloat = fmap (isSuffixOf "Simplest Float") $ gets (description . W.layout . W.workspace . W.current . windowset)
+
 
 ---------------------------------------------------------------------
 -- Other Hooks
 ---------------------------------------------------------------------
 
 myStartupHook = do
+	startTimer 1 >>= XS.put . TID
 	setDefaultCursor xC_left_ptr
 	spawn "urxvtd"
 	setWMName "LG3D"
@@ -593,7 +617,7 @@ main = do
 		, manageHook			= myManageHook <+> manageScratchPad <+> manageDocks
 		, layoutHook			= myLayoutHook
 		, startupHook			= myStartupHook
-		--, handleEventHook		= myHandleEventHook
+		, handleEventHook		= myHandleEventHook
 		, logHook				= dzBLLogHook barBL <+> dzBRLogHook barBR <+> dzTLLogHook barTL <+> dzTRLogHook barTR  
 		}
     
