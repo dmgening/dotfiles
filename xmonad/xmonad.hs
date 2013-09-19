@@ -85,23 +85,29 @@ import XMonad.Util.Timer
 
 myFont		= "xft:Droid Sans Mono:pixelsize=12"
 
+clBackground 	= ""
+clCurrentLine 	= ""
+clSelection 	= ""
+clForeground 	= ""
+clComment		= "" 
+
 -- Ethan Schoonover "Solarized" Theme
-clBase03    = "#002b36"
-clBase02    = "#073642"
-clBase01    = "#586e75"
-clBase00    = "#657b83"
-clBase0     = "#839496"
-clBase1     = "#93a1a1"
-clBase2     = "#eee8d5"
-clBase3     = "#fdf6e3"
-clYellow    = "#b58900"
-clOrange    = "#cb4b16"
-clRed       = "#dc322f"
-clMagenta   = "#d33682"
-clViolet    = "#6c71c4"
-clBlue      = "#268bd2"
-clCyan      = "#2aa198"
-clGreen     = "#859900"
+clBase03    = "#1d1f21"
+clBase02    = "#282a2e"
+clBase01    = "#969896"
+clBase00    = "#373b41"
+
+clBase0     = "#c5c8c6"
+
+clRed       = "#cc6666"
+clOrange    = "#de935f"
+clYellow    = "#f0c674"
+clGreen     = "#b5bd68"
+clCyan      = "#8abeb7"
+clBlue      = "#81a2be"
+
+clMagenta   = "#"
+clViolet    = "#b294bb"
 
 displayX = 1920
 displayY = 1080
@@ -493,8 +499,8 @@ myLayoutHook = avoidStruts
 	$ onWorkspace (myWorkspaces !! 4) chatLayouts --Workspace 4 layouts
 	$ allLayouts where
 		allLayouts  = myTile ||| myOneB ||| myMirr ||| myMosA ||| myMTab
-		webLayouts  = myTabb ||| myTTab
-		codeLayouts = myMTab ||| myTile
+		webLayouts  = myTabb
+		codeLayouts = myTabb 
 		gimpLayouts = myGimp
 		chatLayouts = myChat
 
@@ -515,7 +521,7 @@ myManageHook = composeAll . concat $
 		doShiftAndGo ws = doF (W.greedyView ws) <+> doShift ws
 		myIgnores		= ["desktop","desktop_window"]
 		myWebS			= ["Firefox","Chromium","Opera"]
-		myCodeS			= ["subl3","emacs"]
+		myCodeS			= ["subl","subl3","emacs"]
 ---------------------------------------------------------------------
 -- Handle Event Hook
 ---------------------------------------------------------------------
