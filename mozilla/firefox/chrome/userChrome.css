@@ -7,7 +7,7 @@
 #appcontent,
 #appcontent > #content,
 #appcontent > #content > tabbox > tabpanels {
-	background: #002b36 !important;
+	background: #1d1f21 !important;
 }
 
 #main-window[stylish-url="about:blank"]:not([onclose^="PrintUtils"]):not([title^="Source Chart"]):not([chromehidden="menubar toolbar directories extrachrome "]) #content browser:not([src]) {
@@ -41,7 +41,7 @@ tabs#tabbrowser-tabs, tabs#tabbrowser-tabs * {
 }
 
 tabs#tabbrowser-tabs {
-	background: #002b36 !important;
+	background: #1d1f21 !important;
 	padding-top: 0px !important;
 	margin-left: 0px !important;
 	padding-top: 0px !important;
@@ -53,16 +53,16 @@ tabs#tabbrowser-tabs {
 .tabbrowser-tab {
 	margin-left: 0px !important;
 	padding-top: 2px !important;
-	color: #586e75 !important;
+	color: #c5c8c6 !important;
 	border-bottom: 0px none !important;
-	background: #002b36 !important;
+	background: #1d1f21 !important;
 
 }
 
 .tabbrowser-tab[selected=true] {
-	color: #268bd2 !important;
+	color: #81a2be !important;
 	font-weight: bold !important;
-	background: #002b36 !important;
+	background: #373b41 !important;
 	border-bottom: 0px none !important;
 	box-shadow: none !important;
 }
@@ -72,6 +72,15 @@ tabs#tabbrowser-tabs {
 	margin-right: 3px !important;
 	margin-top: 2px !important;
 	margin-bottom: 2px !important;
+}
+
+.tabbrowser-tab[pinned=true] {
+	padding-right: 5px !important;
+	padding-left: 10px !important;
+}
+
+.tabbrowser-tab[pinned=true] .tab-icon-image {
+	display: inline !important;
 }
 
 #urlbar dropmarker,
