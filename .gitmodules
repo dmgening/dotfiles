@@ -4,3 +4,6 @@
 [submodule "sublimetext/solarized"]
 	path = sublimetext/solarized
 	url = https://github.com/frank-oc/solarized-theme.git
+[submodule "vim/bundle/vundle"]
+	path = vim/bundle/vundle
+	url = git://github.com/gmarik/vundle.git

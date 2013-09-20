@@ -1,0 +1,14 @@
+set nocompatible
+filetype off
+
+"" Package managment
+set rtp+=~/.vim/bundle/vundle/
+call vundle#rc()
+
+Bundle 'gmarik/vundle'
+
+filetype indent on
+"" ## Common options
+"" Tab Settings
+set smarttab, tabstop=4, expandtab
+
