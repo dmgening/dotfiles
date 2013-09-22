@@ -2,13 +2,17 @@ set nocompatible
 filetype off
 
 "" Package managment
-set rtp+=~/.vim/bundle/vundle/
-call vundle#rc()
+source ~/.vim/bundles
+"" Package specific settings
+for f in split(glob('~/.vim/settings.d/*'), '\n')
+        exe 'source' f
+endfor
+"" Keymaps
+source ~/.vim/keymaps
 
-Bundle 'gmarik/vundle'
-
-filetype indent on
 "" ## Common options
 "" Tab Settings
-set smarttab, tabstop=4, expandtab
+set smarttab tabstop=4 expandtab
+
+"" Keybindings
 
