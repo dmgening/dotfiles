@@ -9,10 +9,19 @@ for f in split(glob('~/.vim/settings.d/*'), '\n')
 endfor
 "" Keymaps
 source ~/.vim/keymaps
+"" Aliases
+source ~/.vim/aliases
 
 "" ## Common options
 "" Tab Settings
-set smarttab tabstop=4 expandtab
+set smarttab smartindent
+set number
 
-"" Keybindings
+colorscheme tomorrownight
+hi Normal ctermbg=none
+
+filetype plugin indent on 
+
+autocmd FileType python setlocal et ts=4 sw=4
+autocmd FileType coffee setlocal et ts=2 sw=2
 

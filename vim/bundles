@@ -1,6 +1,25 @@
+" vim: ft=vim
 set rtp+=~/.vim/bundle/vundle/
 call vundle#rc()
 
 Bundle 'gmarik/vundle'
-Bundle 'kein/ctrlp.vim'
-Bundle 'davidhalter/jedi-vim'
+
+Bundle 'L9'
+Bundle 'jmcantrell/vim-virtualenv'
+
+Bundle 'FuzzyFinder'
+Bundle 'Lokaltog/powerline'
+Bundle 'Raimondi/delimitMate'
+
+Bundle 'terryma/vim-multiple-cursors'
+Bundle 'Valloric/YouCompleteMe'
+Bundle 'scrooloose/syntastic'
+
+Bundle 'kmchmk/vim-coffee-script'
+
+let g:ycm_seed_identifiers_with_syntax = 1
+let g:ycm_add_preview_to_completeopt = 1
+let g:ycm_autoclose_preview_window_after_completion = 1
+
+let g:syntastic_python_checkers = ['pylint']
+
