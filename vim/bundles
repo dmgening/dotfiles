@@ -8,7 +8,6 @@ Bundle 'L9'
 Bundle 'jmcantrell/vim-virtualenv'
 
 Bundle 'FuzzyFinder'
-Bundle 'Lokaltog/powerline'
 Bundle 'Raimondi/delimitMate'
 
 Bundle 'terryma/vim-multiple-cursors'

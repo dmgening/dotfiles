@@ -14,6 +14,7 @@ source ~/.vim/aliases
 
 "" ## Common options
 "" Tab Settings
+set noswapfile
 set smarttab smartindent
 set number
 

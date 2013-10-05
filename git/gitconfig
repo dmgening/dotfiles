@@ -1,7 +1,9 @@
 [user]
-	email = dmgening@me.com
-	name = Dmitry Gening
+  email = dmgening@me.com
+  name = Dmitry Gening
+[color]
+  ui = True
 [push]
-	default = current
+  default = current
 [core]
-	excludesfiles = ~/.gitignore
+  excludesfiles = ~/.gitignore

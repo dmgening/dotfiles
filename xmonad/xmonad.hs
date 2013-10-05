@@ -562,26 +562,25 @@ myStartupHook = do
 myKeys :: XConfig Layout -> M.Map (KeyMask, KeySym) (X ())
 myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
 	[ ((modMask .|. shiftMask, 	xK_q), 		io (exitWith ExitSuccess))
-	, ((modMask, 				xK_q), 		restart "xmonad" True)
-
-	, ((modMask,				xK_r),		shellPrompt myXPConfig)
+	, ((modMask, 			xK_q), 		restart "xmonad" True)
+	, ((modMask,			xK_r),		shellPrompt myXPConfig)
 	, ((modMask .|. shiftMask,	xK_r),		manPrompt myXPConfig)
-	
 	, ((modMask .|. shiftMask,	xK_c),		kill)
-	, ((modMask, 				xK_j), 		windows W.focusDown)
-	, ((modMask, 				xK_k), 		windows W.focusUp)
-	, ((modMask, 				xK_m), 		windows W.focusMaster)
+	, ((modMask, 			xK_j), 		windows W.focusDown)
+	, ((modMask, 			xK_k), 		windows W.focusUp)
+	, ((modMask, 			xK_m), 		windows W.focusMaster)
 	, ((modMask .|. shiftMask, 	xK_j), 		windows W.swapDown)
 	, ((modMask .|. shiftMask, 	xK_k), 		windows W.swapUp)
 	, ((modMask .|. shiftMask, 	xK_m), 		windows W.swapMaster)
-	, ((modMask, 				xK_g), 		goToSelected $ myGSConfig myColorizer) 
-
-	, ((modMask, 				xK_h), 		sendMessage Shrink)
-	, ((modMask, 				xK_l), 		sendMessage Expand)
+	, ((modMask .|. shiftMask, 	xK_space), 	windows W.swapMaster)
+	, ((modMask, 			xK_g), 		goToSelected $ myGSConfig myColorizer) 
+	, ((modMask, 			xK_h), 		sendMessage Shrink)
+	, ((modMask, 			xK_l), 		sendMessage Expand)
 	, ((modMask .|. shiftMask, 	xK_h), 		sendMessage MirrorShrink)
 	, ((modMask .|. shiftMask, 	xK_l), 		sendMessage MirrorExpand)
-
 	, ((modMask .|. shiftMask, 	xK_Return), spawn $ XMonad.terminal conf)
+	, ((modMask, xK_space), sendMessage NextLayout)                                              --Rotate through the available layout algorithms
+	, ((modMask, xK_v ), sendMessage ToggleLayout) 
 	] ++ 
 	[ ((m .|. modMask, k), windows $ f i)                                                        --Switch to n workspaces and send client to n workspaces
 	  | (i, k) <- zip (XMonad.workspaces conf) ([xK_1 .. xK_9])
