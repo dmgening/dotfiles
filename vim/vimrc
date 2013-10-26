@@ -19,9 +19,13 @@ set smarttab smartindent
 set number
 
 colorscheme tomorrownight
-hi Normal ctermbg=none
 
-filetype plugin indent on 
+filetype plugin indent on
+
+"" Annoy me
+match Error /\s\+$/
+
+set laststatus=2
 
 autocmd FileType python setlocal et ts=4 sw=4
 autocmd FileType coffee setlocal et ts=2 sw=2
