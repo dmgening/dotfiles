@@ -4,3 +4,6 @@
 [submodule "vim/bundle/vundle"]
 	path = vim/bundle/vundle
 	url = git://github.com/gmarik/vundle.git
+[submodule "zsh/grml-etc-core"]
+	path = zsh/grml-etc-core
+	url = git://git.grml.org/grml-etc-core.git
