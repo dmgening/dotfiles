@@ -6,3 +6,29 @@ nmap <Leader>f :FufCoverageFile<CR>
 nmap <Leader>b :FufBuffer<CR>
 nmap <Leader>l :FufLine<CR>
 nmap <Leader>t :FufBufferTag<CR>
+
+" NerdTree Toggle
+nmap <Leader>T :NERDTreeToggle<CR>
+
+" rnu switcher
+function! ToggleRNU()
+	if(&relativenumber == 1)
+		set number
+	else
+		set relativenumber
+	endif
+endfunc
+nnoremap <Leader>n :call ToggleRNU()<cr>
+
+" hlsearch switcher
+function! ToggleHLSearch()
+	if(&hlsearch == 1)
+		set nohlsearch
+	else
+		set hlsearch
+	endif
+endfunc
+nnoremap <Leader>/ :call ToggleHLSearch()<cr>
+nnoremap # :set hlsearch<cr>#
+nnoremap ? :set hlsearch<cr>?
+nnoremap / :set hlsearch<cr>/

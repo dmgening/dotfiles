@@ -4,21 +4,14 @@ call vundle#rc()
 
 Bundle 'gmarik/vundle'
 
-Bundle 'L9'
-Bundle 'FuzzyFinder'
-
 Bundle 'jmcantrell/vim-virtualenv'
 Bundle 'airblade/vim-gitgutter'
 
 Bundle 'bling/vim-airline'
-Bundle 'Raimondi/delimitMate'
+
 Bundle 'Valloric/YouCompleteMe'
 Bundle 'scrooloose/syntastic'
-
-Bundle 'terryma/vim-multiple-cursors'
-
-Bundle 'digitaltoad/vim-jade'
-Bundle 'kchmck/vim-coffee-script'
+Bundle 'scrooloose/nerdtree'
 
 let g:ycm_seed_identifiers_with_syntax = 1
 let g:ycm_add_preview_to_completeopt = 1
