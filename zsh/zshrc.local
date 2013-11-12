@@ -17,8 +17,8 @@
 
 export TERM='xterm-256color'
 export EDITOR='/usr/bin/vim'
-export MANPAGER='/usr/bin/vimmanpager'
-export PAGER=$MANPAGER
+#export MANPAGER='/usr/bin/vimmanpager'
+#export PAGER=$MANPAGER
 
 ## Inform users about upgrade path for grml's old zshrc layout, assuming that:
 ## /etc/skel/.zshrc was installed as ~/.zshrc,
