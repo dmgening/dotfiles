@@ -1,8 +1,20 @@
 " vim: ft=vim
 set langmap=ФИСВУАПРШОЛДЬТЩЗЙКЫЕГМЦЧНЯЖ;ABCDEFGHIJKLMNOPQRSTUVWXYZ:,фисвуапршолдьтщзйкыегмцчня;abcdefghijklmnopqrstuvwxyz
 
-nmap <Leader>F :FufFile<CR>
-nmap <Leader>f :FufCoverageFile<CR>
-nmap <Leader>b :FufBuffer<CR>
-nmap <Leader>l :FufLine<CR>
-nmap <Leader>t :FufBufferTag<CR>
+" hlsearch switcher
+function! ToggleHLSearch()
+	if(&hlsearch == 1)
+		set nohlsearch
+	else
+		set hlsearch
+	endif
+endfunc
+nnoremap <Leader>/ :call ToggleHLSearch()<cr>
+nnoremap # :set hlsearch<cr>#
+nnoremap ? :set hlsearch<cr>?
+nnoremap / :set hlsearch<cr>/
+
+" Show hidden chars
+nmap <Leader>eh :set list!<CR>
+set listchars=tab:→\ ,eol:↵,trail:·,extends:↷,precedes:↶
+

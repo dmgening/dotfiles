@@ -18,6 +18,18 @@ set noswapfile
 set smarttab smartindent
 set number
 
+"" wildmenu
+set wildmenu
+set wildmode=list:longest,full
+
+set wildignore+=*.sw?                            " Vim swap files
+set wildignore+=*.bak,*.?~,*.??~,*.???~,*.~      " Backup files
+set wildignore+=*.luac                           " Lua byte code
+set wildignore+=*.jar                            " java archives
+set wildignore+=*.pyc                            " Python byte code
+set wildignore+=*.stats                          " Pylint stats
+
+
 colorscheme tomorrownight
 
 filetype plugin indent on
@@ -29,4 +41,10 @@ set laststatus=2
 
 autocmd FileType python setlocal et ts=4 sw=4
 autocmd FileType coffee setlocal et ts=2 sw=2
+
+" Autoresize splits
+au VimResized * exe "normal! \<c-w>="
+
+" folding method
+set foldmethod=marker
 

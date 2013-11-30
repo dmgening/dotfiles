@@ -4,25 +4,26 @@ call vundle#rc()
 
 Bundle 'gmarik/vundle'
 
-Bundle 'L9'
-Bundle 'FuzzyFinder'
-
 Bundle 'jmcantrell/vim-virtualenv'
+
+Bundle 'tpope/vim-fugitive'
 Bundle 'airblade/vim-gitgutter'
 
 Bundle 'bling/vim-airline'
-Bundle 'Raimondi/delimitMate'
+
+" Shell buffers
+Bundle 'Shougo/vimshell.vim'
+
+" Code completion and checks
 Bundle 'Valloric/YouCompleteMe'
 Bundle 'scrooloose/syntastic'
 
+" Navigation
+Bundle 'Shougo/vimproc.vim'
+Bundle 'Shougo/unite.vim'
 Bundle 'terryma/vim-multiple-cursors'
+Bundle 'jeffkreeftmeijer/vim-numbertoggle' 
 
-Bundle 'digitaltoad/vim-jade'
-Bundle 'kchmck/vim-coffee-script'
+let g:syntastic_python_checkers = ['pyflakes', 'pep8']
 
-let g:ycm_seed_identifiers_with_syntax = 1
-let g:ycm_add_preview_to_completeopt = 1
-let g:ycm_autoclose_preview_window_after_completion = 1
-
-let g:syntastic_python_checkers = ['pylint']
-
+let g:airline_enable_branch=1
