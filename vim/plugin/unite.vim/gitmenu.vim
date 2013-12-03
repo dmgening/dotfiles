@@ -4,7 +4,6 @@ let g:unite_source_menu_menus.git = {
         \'                            ⌘ [espacio]g',
     \}
 let g:unite_source_menu_menus.git.command_candidates = [
-    \['tig         ', 'normal ,gt'],
     \['git status  ', 'Gstatus'],
     \['git diff    ', 'Gdiff'],
     \['git commit  ', 'Gcommit'],
@@ -13,10 +12,10 @@ let g:unite_source_menu_menus.git.command_candidates = [
     \['git stage   ', 'Gwrite'],
     \['git checkout', 'Gread'],
     \['git rm      ', 'Gremove'],
-    \['git mv      ', 'exe "Gmove " input("destino: ")'],
+    \['git mv      ', 'exe "Gmove " input("Destination: ")'],
     \['git push    ', 'Git! push'],
     \['git pull    ', 'Git! pull'],
-    \['git prompt  ', 'exe "Git! " input("comando git: ")'],
+    \['git prompt  ', 'exe "Git! " input("Command: ")'],
     \['git cd      ', 'Gcd'],
-    \]
-nnoremap <silent><Leader>g :Unite -silent -start-insert menu:git<CR>
+\]
+

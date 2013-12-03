@@ -7,18 +7,17 @@ source ~/.vim/bundles
 for f in split(glob('~/.vim/settings.d/*'), '\n')
         exe 'source' f
 endfor
-"" Keymaps
+"" Global Keymaps
 source ~/.vim/keymaps
-"" Aliases
+"" Global Aliases
 source ~/.vim/aliases
 
 "" ## Common options
-"" Tab Settings
-set noswapfile
-set smarttab smartindent
-set number
+set noswapfile nobackup nowritebackup
+set relativenumber
+set incsearch smartcase
 
-"" wildmenu
+"" Wildmenu
 set wildmenu
 set wildmode=list:longest,full
 
@@ -29,10 +28,16 @@ set wildignore+=*.jar                            " java archives
 set wildignore+=*.pyc                            " Python byte code
 set wildignore+=*.stats                          " Pylint stats
 
+"" Prefare spaces over tabs
+set tabstop=4 softtabstop=4 shiftwidth=4
+set shiftround expandtab
 
+"" Colors
+set t_Co=256
 colorscheme tomorrownight
 
-filetype plugin indent on
+"" Allow hidden buffers
+set hidden
 
 "" Annoy me
 match Error /\s\+$/

@@ -22,8 +22,12 @@ Bundle 'scrooloose/syntastic'
 Bundle 'Shougo/vimproc.vim'
 Bundle 'Shougo/unite.vim'
 Bundle 'terryma/vim-multiple-cursors'
-Bundle 'jeffkreeftmeijer/vim-numbertoggle' 
+Bundle 'jeffkreeftmeijer/vim-numbertoggle'
+Bundle 'Lokaltog/vim-easymotion'
+
+filetype plugin indent on
 
 let g:syntastic_python_checkers = ['pyflakes', 'pep8']
 
-let g:airline_enable_branch=1
+let g:EasyMotion_leader_key = '<Leader>g'
+
