@@ -4,26 +4,26 @@
 " Hex colour conversion functions borrowed from the theme "Desert256""
 
 " Default GUI Colours
-let s:foreground = "c5c8c6"
-let s:background = "1d1f21"
-let s:selection = "373b41"
-let s:line = "282a2e"
-let s:comment = "969896"
-let s:red = "cc6666"
-let s:orange = "de935f"
-let s:yellow = "f0c674"
-let s:green = "b5bd68"
-let s:aqua = "8abeb7"
-let s:blue = "81a2be"
-let s:purple = "b294bb"
-let s:window = "4d5057"
+let s:foreground = "#c5c8c6"
+let s:background = "#1d1f21"
+let s:selection = "#373b41"
+let s:line = "#282a2e"
+let s:comment = "#969896"
+let s:red = "#cc6666"
+let s:orange = "#de935f"
+let s:yellow = "#f0c674"
+let s:green = "#b5bd68"
+let s:aqua = "#8abeb7"
+let s:blue = "#81a2be"
+let s:purple = "#b294bb"
+let s:window = "#4d5057"
 
 " Console 256 Colours
 if !has("gui_running")
-	let s:background = "none"
-	let s:window = "5e5e5e"
-	let s:line = "3a3a3a"
-	let s:selection = "585858"
+	let s:background = "NONE"
+	let s:window = "#5e5e5e"
+	let s:line = "#3a3a3a"
+	let s:selection = "#585858"
 end
 
 hi clear
@@ -219,8 +219,8 @@ if has("gui_running") || &t_Co == 88 || &t_Co == 256
 
 	" Returns the palette index to approximate the 'rrggbb' hex string
 	fun <SID>rgb(rgb)
-		if a:rgb == "none"
-			return "none"
+		if a:rgb == "NONE"
+			return "NONE"
 		endif
 		let l:r = ("0x" . strpart(a:rgb, 0, 2)) + 0
 		let l:g = ("0x" . strpart(a:rgb, 2, 2)) + 0
@@ -232,10 +232,10 @@ if has("gui_running") || &t_Co == 88 || &t_Co == 256
 	" Sets the highlighting for the given group
 	fun <SID>X(group, fg, bg, attr)
 		if a:fg != ""
-			exec "hi " . a:group . " guifg=#" . a:fg . " ctermfg=" . <SID>rgb(a:fg)
+			exec "hi " . a:group . " guifg=" . a:fg . " ctermfg=" . <SID>rgb(a:fg)
 		endif
 		if a:bg != ""
-			exec "hi " . a:group . " guibg=#" . a:bg . " ctermbg=" . <SID>rgb(a:bg)
+			exec "hi " . a:group . " guibg=" . a:bg . " ctermbg=" . <SID>rgb(a:bg)
 		endif
 		if a:attr != ""
 			exec "hi " . a:group . " gui=" . a:attr . " cterm=" . a:attr
@@ -248,12 +248,12 @@ if has("gui_running") || &t_Co == 88 || &t_Co == 256
 	call <SID>X("NonText", s:selection, "", "")
 	call <SID>X("SpecialKey", s:selection, "", "")
 	call <SID>X("Search", s:background, s:yellow, "")
-	call <SID>X("TabLine", s:foreground, s:background, "none")
-	call <SID>X("TabLineSel", s:orange, s:background, "none")
-	call <SID>X("TabLineFill", s:background, s:background, "none")
+	call <SID>X("TabLine", s:foreground, s:background, "NONE")
+	call <SID>X("TabLineSel", s:orange, s:background, "NONE")
+	call <SID>X("TabLineFill", s:background, s:background, "NONE")
 	call <SID>X("StatusLine", s:window, s:yellow, "reverse")
 	call <SID>X("StatusLineNC", s:window, s:foreground, "reverse")
-	call <SID>X("VertSplit", s:window, s:window, "none")
+	call <SID>X("VertSplit", s:window, s:window, "NONE")
 	call <SID>X("Visual", "", s:selection, "")
 	call <SID>X("Directory", s:blue, "", "")
 	call <SID>X("ModeMsg", s:green, "", "")
@@ -264,14 +264,14 @@ if has("gui_running") || &t_Co == 88 || &t_Co == 256
 	call <SID>X("Folded", s:comment, "", "")
 	call <SID>X("FoldColumn", "", "", "")
 	if version >= 700
-		call <SID>X("CursorLine", "", s:line, "none")
-		call <SID>X("CursorColumn", "", s:line, "none")
-		call <SID>X("PMenu", s:foreground, s:selection, "none")
+		call <SID>X("CursorLine", "", s:line, "NONE")
+		call <SID>X("CursorColumn", "", s:line, "NONE")
+		call <SID>X("PMenu", s:foreground, s:selection, "NONE")
 		call <SID>X("PMenuSel", s:foreground, s:selection, "reverse")
-		call <SID>X("SignColumn", s:foreground, s:background, "none")
+		call <SID>X("SignColumn", s:foreground, s:background, "NONE")
 	end
 	if version >= 703
-		call <SID>X("ColorColumn", "", s:line, "none")
+		call <SID>X("ColorColumn", "", s:line, "NONE")
 	end
 
 	" Syntastic fixes
@@ -284,7 +284,7 @@ if has("gui_running") || &t_Co == 88 || &t_Co == 256
 	call <SID>X("Comment", s:comment, "", "")
 	call <SID>X("Todo", s:comment, s:background, "")
 	call <SID>X("Title", s:comment, "", "")
-	call <SID>X("Identifier", s:red, "", "none")
+	call <SID>X("Identifier", s:red, "", "NONE")
 	call <SID>X("Statement", s:foreground, "", "")
 	call <SID>X("Conditional", s:purple, "", "")
 	call <SID>X("Repeat", s:purple, "", "")
@@ -294,14 +294,14 @@ if has("gui_running") || &t_Co == 88 || &t_Co == 256
 	call <SID>X("String", s:green, "", "")
 	call <SID>X("Special", s:foreground, "", "")
 	call <SID>X("PreProc", s:purple, "", "")
-	call <SID>X("Operator", s:aqua, "", "none")
-	call <SID>X("Type", s:blue, "", "none")
-	call <SID>X("Define", s:purple, "", "none")
+	call <SID>X("Operator", s:aqua, "", "NONE")
+	call <SID>X("Type", s:blue, "", "NONE")
+	call <SID>X("Define", s:purple, "", "NONE")
 	call <SID>X("Include", s:blue, "", "")
 	"call <SID>X("Ignore", "666666", "", "")
 
 	" Vim Highlighting
-	call <SID>X("vimCommand", s:red, "", "none")
+	call <SID>X("vimCommand", s:red, "", "NONE")
 
 	" C Highlighting
 	call <SID>X("cType", s:yellow, "", "")
@@ -364,10 +364,10 @@ if has("gui_running") || &t_Co == 88 || &t_Co == 256
 	call <SID>X("DiffText", "", s:background, "")
 
 	" ShowMarks Highlighting
-	call <SID>X("ShowMarksHLl", s:orange, s:background, "none")
-	call <SID>X("ShowMarksHLo", s:purple, s:background, "none")
-	call <SID>X("ShowMarksHLu", s:yellow, s:background, "none")
-	call <SID>X("ShowMarksHLm", s:aqua, s:background, "none")
+	call <SID>X("ShowMarksHLl", s:orange, s:background, "NONE")
+	call <SID>X("ShowMarksHLo", s:purple, s:background, "NONE")
+	call <SID>X("ShowMarksHLu", s:yellow, s:background, "NONE")
+	call <SID>X("ShowMarksHLm", s:aqua, s:background, "NONE")
 
 	" Cucumber Highlighting
 	call <SID>X("cucumberGiven", s:blue, "", "")
