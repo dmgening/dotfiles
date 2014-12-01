@@ -4,26 +4,26 @@
 " Hex colour conversion functions borrowed from the theme "Desert256""
 
 " Default GUI Colours
-let s:foreground = "#c5c8c6"
-let s:background = "#1d1f21"
-let s:selection = "#373b41"
-let s:line = "#282a2e"
-let s:comment = "#969896"
-let s:red = "#cc6666"
-let s:orange = "#de935f"
-let s:yellow = "#f0c674"
-let s:green = "#b5bd68"
-let s:aqua = "#8abeb7"
-let s:blue = "#81a2be"
-let s:purple = "#b294bb"
-let s:window = "#4d5057"
+let s:foreground = "c5c8c6"
+let s:background = "1d1f21"
+let s:selection = "373b41"
+let s:line = "282a2e"
+let s:comment = "969896"
+let s:red = "cc6666"
+let s:orange = "de935f"
+let s:yellow = "f0c674"
+let s:green = "b5bd68"
+let s:aqua = "8abeb7"
+let s:blue = "81a2be"
+let s:purple = "b294bb"
+let s:window = "4d5057"
 
 " Console 256 Colours
 if !has("gui_running")
 	let s:background = "NONE"
-	let s:window = "#5e5e5e"
-	let s:line = "#3a3a3a"
-	let s:selection = "#585858"
+	let s:window = "5e5e5e"
+	let s:line = "3a3a3a"
+	let s:selection = "585858"
 end
 
 hi clear
@@ -217,6 +217,14 @@ if has("gui_running") || &t_Co == 88 || &t_Co == 256
 		endif
 	endfun
 
+    " Append # for colors
+    fun <SID>hashed(rgb)
+        if a:rgb == "NONE"
+            return "NONE"
+        endif
+        return "#" . a:rgb
+    endfun
+
 	" Returns the palette index to approximate the 'rrggbb' hex string
 	fun <SID>rgb(rgb)
 		if a:rgb == "NONE"
@@ -232,10 +240,10 @@ if has("gui_running") || &t_Co == 88 || &t_Co == 256
 	" Sets the highlighting for the given group
 	fun <SID>X(group, fg, bg, attr)
 		if a:fg != ""
-			exec "hi " . a:group . " guifg=" . a:fg . " ctermfg=" . <SID>rgb(a:fg)
+			exec "hi " . a:group . " guifg=" . <SID>hashed(a:fg) . " ctermfg=" . <SID>rgb(a:fg)
 		endif
 		if a:bg != ""
-			exec "hi " . a:group . " guibg=" . a:bg . " ctermbg=" . <SID>rgb(a:bg)
+			exec "hi " . a:group . " guibg=" . <SID>hashed(a:bg) . " ctermbg=" . <SID>rgb(a:bg)
 		endif
 		if a:attr != ""
 			exec "hi " . a:group . " gui=" . a:attr . " cterm=" . a:attr
@@ -401,6 +409,7 @@ if has("gui_running") || &t_Co == 88 || &t_Co == 256
 	delf <SID>grey_colour
 	delf <SID>grey_level
 	delf <SID>grey_number
+    delf <SID>hashed
 endif
 
 set background=dark
