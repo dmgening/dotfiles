@@ -3,7 +3,7 @@ let g:unite_force_overwrite_statusline = 0
 let g:unite_winheight = 20
 let g:unite_candidate_icon=">"
 
-autocmd FileType unite call s:unite_my_settings()
+"autocmd FileType unite call s:unite_my_settings()
 
 function! s:unite_my_settings()"{{{"{{{
     " Overwrite settings.
