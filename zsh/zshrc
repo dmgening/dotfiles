@@ -247,3 +247,7 @@ alias la='ls -la'
 alias ll='ls -l'
 alias lh='ls -hAl'
 alias l='ls -lF'
+
+##
+WORKON_HOME=~/.venvs
+source /usr/local/bin/virtualenvwrapper.sh
