@@ -3,6 +3,9 @@
 		"left": [
 			{
 				"function": "powerline.segments.common.net.hostname",
+                "args": {
+                    "only_if_ssh": true
+                },
 				"priority": 30
 			},
 			{
