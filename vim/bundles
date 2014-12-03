@@ -27,6 +27,7 @@ Bundle 'Lokaltog/vim-easymotion'
 filetype plugin indent on
 
 let g:syntastic_python_checkers = ['pyflakes', 'pep8']
+let g:syntastic_python_pep8_args = '--ignore=E501'
 
 let g:EasyMotion_leader_key = '<Leader>g'
 

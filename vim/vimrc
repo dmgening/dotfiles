@@ -67,4 +67,3 @@ set foldmethod=marker
 
 " Gui font
 set guifont=Menlo\ for\ Powerline
-
