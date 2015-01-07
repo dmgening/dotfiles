@@ -2,7 +2,9 @@ export LC_ALL='en_US.UTF-8'
 export LANG='en_US.UTF-8'
 
 export TERM='xterm-256color'
-export EDITOR='/usr/local/bin/mvim'
+export EDITOR=$(which vim)
+
+stty erase '^?'
 
 bindkey -e
 
@@ -52,7 +54,7 @@ setopt noglobdots
 setopt noshwordsplit
 
 # if we don't set $SHELL then aterm, rxvt,.. will use /bin/sh or /bin/bash :-/
-export SHELL='/bin/zsh'
+export SHELL=$(which zsh)
 
 # color setup for ls on OS X / FreeBSD:
 export CLICOLOR=1

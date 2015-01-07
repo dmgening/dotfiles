@@ -18,11 +18,11 @@ map OB <down>
 map OC <right>
 map OD <left>
 
-
 "" ## Common options
 set noswapfile nobackup nowritebackup
 set relativenumber
 set incsearch smartcase
+set backspace=2
 syntax on
 
 "" Wildmenu
@@ -37,7 +37,7 @@ set wildignore+=*.pyc                            " Python byte code
 set wildignore+=*.stats                          " Pylint stats
 
 "" Prefare spaces over tabs
-set tabstop=4 softtabstop=4 shiftwidth=4
+set tabstop=2 softtabstop=2 shiftwidth=2
 set shiftround expandtab
 
 "" Colors
@@ -56,8 +56,8 @@ set noshowmode
 set showtabline=2
 set guioptions=gm
 
-autocmd FileType python setlocal et ts=4 sw=4
-autocmd FileType coffee setlocal et ts=2 sw=2
+autocmd FileType python setlocal et sts=4 ts=4 sw=4
+autocmd FileType coffee setlocal et sts=2 ts=2 sw=2
 
 " Autoresize splits
 au VimResized * exe "normal! \<c-w>="
