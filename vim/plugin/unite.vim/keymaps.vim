@@ -1,6 +1,4 @@
-
-
-nnoremap <silent><Leader>F :<C-u>Unite -silent -buffer-name=files buffer file_mru file_rec/async:!<cr>
+nnoremap <silent><Leader>F :<C-u>Unite -silent -buffer-name=files buffer file_mru file<cr>
 nnoremap <silent><Leader>f :<C-u>Unite -silent -buffer-name=files buffer file file/new<cr>
 nnoremap <silent><Leader>p :<C-u>Unite -silent -buffer-name=lcdmru -default-action=lcd directory_mru<cr>
 nnoremap <silent><Leader>s :<C-u>Unite -silent -buffer-name=grep grep:%<cr>

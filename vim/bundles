@@ -11,6 +11,9 @@ Bundle 'tpope/vim-fugitive'
 Bundle 'airblade/vim-gitgutter'
 Bundle 'Lokaltog/powerline', {'rtp': '/usr/local/lib/python2.7/site-packages/powerline/bindings/vim/'}
 
+" Syntax
+Bundle 'kchmck/vim-coffee-script'
+
 " Code completion and checks
 Bundle 'Valloric/YouCompleteMe'
 Bundle 'scrooloose/syntastic'
