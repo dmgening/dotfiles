@@ -23,6 +23,7 @@ set noswapfile nobackup nowritebackup
 set relativenumber
 set incsearch smartcase
 set backspace=2
+set lazyredraw
 syntax on
 
 "" Wildmenu
@@ -42,7 +43,8 @@ set shiftround expandtab
 
 "" Colors
 set t_Co=256
-colorscheme tomorrownight
+set background=dark
+colorscheme gruvbox
 
 "" Allow hidden buffers
 set hidden
@@ -57,7 +59,6 @@ set showtabline=2
 set guioptions=gm
 
 autocmd FileType python setlocal et sts=4 ts=4 sw=4
-autocmd FileType coffee setlocal et sts=2 ts=2 sw=2
 
 " Autoresize splits
 au VimResized * exe "normal! \<c-w>="
