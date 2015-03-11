@@ -9,7 +9,7 @@ Bundle 'jmcantrell/vim-virtualenv'
 
 Bundle 'tpope/vim-fugitive'
 Bundle 'airblade/vim-gitgutter'
-Bundle 'Lokaltog/powerline', {'rtp': '/usr/local/lib/python2.7/site-packages/powerline/bindings/vim/'}
+Bundle 'bling/vim-airline'
 
 " Syntax
 Bundle 'kchmck/vim-coffee-script'

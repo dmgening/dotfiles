@@ -3,14 +3,10 @@ filetype off
 
 "" Package managment
 source ~/.vim/bundles
-"" Package specific settings
-for f in split(glob('~/.vim/settings.d/*'), '\n')
+"" Load settings
+for f in split(glob('~/.vim/settings/*'), '\n')
         exe 'source' f
 endfor
-"" Global Keymaps
-source ~/.vim/keymaps
-"" Global Aliases
-source ~/.vim/aliases
 
 " OS X Arrow key fix
 map OA <up>
@@ -25,17 +21,6 @@ set incsearch smartcase
 set backspace=2
 set lazyredraw
 syntax on
-
-"" Wildmenu
-set wildmenu
-set wildmode=list:longest,full
-
-set wildignore+=*.sw?                            " Vim swap files
-set wildignore+=*.bak,*.?~,*.??~,*.???~,*.~      " Backup files
-set wildignore+=*.luac                           " Lua byte code
-set wildignore+=*.jar                            " java archives
-set wildignore+=*.pyc                            " Python byte code
-set wildignore+=*.stats                          " Pylint stats
 
 "" Prefare spaces over tabs
 set tabstop=2 softtabstop=2 shiftwidth=2
