@@ -18,3 +18,5 @@ export EDITOR=$(which vim)
 
 WORKON_HOME=~/.venvs
 source /usr/local/bin/virtualenvwrapper.sh
+
+alias l='ls -a'

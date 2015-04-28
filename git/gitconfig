@@ -8,4 +8,6 @@
 [core]
   excludesfiles = ~/.gitignore
 [alias]
+  commit-rnd = "!git commit -m \"`curl -s whatthecommit.com | awk '{ if ($0 ~ /<p>.*/) { sub(/<p>/, \"\", $0); print }}'`\""
   log-tree = log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(bold cyan)%aD%C(reset) %C(bold green)(%ar)%C(reset)%C(bold yellow)%d%C(reset)%n''          %C(white)%s%C(reset) %C(dim white)- %an%C(reset)' --all
+  find-ancestor = "!zsh -c 'diff -u <(git rev-list --first-parent '${1:-master}') <(git rev-list --first-parent '${2:-HEAD}') | sed -ne \"s/^ //p\" | head -1' -"
