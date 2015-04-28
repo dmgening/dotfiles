@@ -8,13 +8,13 @@ let s:N3  = ['#9cffd3', '#202020', 15, 8 ]
 let s:I1  = ['#00005f', '#00dfff', 15, 3 ]
 let s:I2  = ['#ffffff', '#005fff', 15, 2 ]
 let s:I3  = ['#ffffff', '#000080', 15, 8 ]
-let s:R1  = ['#00005f', '#00dfff', 15, 9 ] 
+let s:R1  = ['#00005f', '#00dfff', 15, 9 ]
 let s:V1  = ['#000000', '#ffaf00', 15, 5 ]
 let s:V2  = ['#000000', '#ff5f00', 15, 2 ]
 let s:V3  = ['#ffffff', '#5f0000', 15, 8 ]
-let s:IA1 = ['#4e4e4e', '#1c1c1c', 239, 234]
-let s:IA2 = ['#4e4e4e', '#262626', 239, 235]
-let s:IA3 = ['#4e4e4e', '#303030', 239, 236]
+let s:IA1 = ['#4e4e4e', '#1c1c1c', 15, 5 ]
+let s:IA2 = ['#4e4e4e', '#262626', 15, 2 ]
+let s:IA3 = ['#4e4e4e', '#303030', 15, 8 ]
 
 let g:airline#themes#swayr#palette = {}
 let g:airline#themes#swayr#palette.normal = airline#themes#generate_color_map(s:N1, s:N2, s:N3)

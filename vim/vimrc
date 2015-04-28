@@ -29,6 +29,7 @@ set shiftround expandtab
 "" Colors
 set t_Co=256
 set background=dark
+colorscheme swayr
 
 "" Allow hidden buffers
 set hidden

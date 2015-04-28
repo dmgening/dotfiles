@@ -9,6 +9,7 @@ Bundle 'jmcantrell/vim-virtualenv'
 
 Bundle 'tpope/vim-fugitive'
 Bundle 'airblade/vim-gitgutter'
+
 Bundle 'bling/vim-airline'
 
 " Syntax
@@ -24,7 +25,6 @@ Bundle 'Shougo/unite.vim'
 Bundle 'Shougo/neomru.vim'
 
 Bundle 'jeffkreeftmeijer/vim-numbertoggle'
-Bundle 'terryma/vim-multiple-cursors'
 Bundle 'Lokaltog/vim-easymotion'
 
 filetype plugin indent on
