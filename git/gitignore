@@ -1,8 +1,0 @@
-# OS X Specific
-.DS_Store
-
-# ROPE
-.ropeproject
-
-# Sublime files
-*.sublime*
