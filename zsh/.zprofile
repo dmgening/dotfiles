@@ -17,9 +17,9 @@ fi
 # Editors
 #
 
-export EDITOR='vim'
-export VISUAL='vim'
-export PAGER='vim'
+export EDITOR="$(which emacsclient) -nw"
+export VISUAL="$(which emacsclient) -nw"
+export PAGER='less'
 
 #
 # Language
