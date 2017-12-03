@@ -2,17 +2,12 @@ set nocompatible
 filetype off
 
 "" Package managment
-source ~/.vim/bundles
+source ~/.vim/plug.vim
+
 "" Load settings
 for f in split(glob('~/.vim/settings/*'), '\n')
         exe 'source' f
 endfor
-
-" OS X Arrow key fix
-map OA <up>
-map OB <down>
-map OC <right>
-map OD <left>
 
 "" ## Common options
 set noswapfile nobackup nowritebackup
@@ -23,13 +18,13 @@ set lazyredraw
 syntax on
 
 "" Prefare spaces over tabs
-set tabstop=2 softtabstop=2 shiftwidth=2
+set tabstop=4 softtabstop=4 shiftwidth=4
 set shiftround expandtab
 
 "" Colors
 set t_Co=256
 set background=dark
-colorscheme swayr
+colorscheme peacock
 
 "" Allow hidden buffers
 set hidden
@@ -50,6 +45,3 @@ au VimResized * exe "normal! \<c-w>="
 
 " folding method
 set foldmethod=marker
-
-" Gui font
-set guifont=Menlo\ for\ Powerline
