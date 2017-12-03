@@ -1,0 +1,8 @@
+#+TITLE: :private modules
+
+Use this directory to store your private configuration modules.
+
+Mine is included as a reference. I recommend you neither delete nor rename it, to avoid merge conflicts upstream.
+
+-----
+You'll find [[/wiki/Customization][more information about customizing Doom]] on the [[/wiki][wiki]].
