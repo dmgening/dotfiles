@@ -1,0 +1,102 @@
+# khd mode default on_enter terminal-notifier -remove khd
+
+# General keyboard configuaration
+khd mod_trigger_timeout 0.5
+lctrl : khd -p "- f19"
+
+# General modes
+cmd + shift - space : chunkc set window_float_next 1; khd -p "cmd - space"
+cmd + shift - w     : chunkc tiling::window --close
+
+# Default Mode
+ctrl - return : khd -e "mode activate wmcontrol"
+
+## Focus movement
+
+ctrl - left  : chunkc tiling::window --focus west
+ctrl - down  : chunkc tiling::window --focus south
+ctrl - up    : chunkc tiling::window --focus north
+ctrl - right : chunkc tiling::window --focus east
+
+# Window Insert Mode
+wminsert + ctrl - g : khd -e "mode activate default"
+wminsert - escape   : khd -e "mode activate wmcontrol"
+wminsert - f        : chunkc tiling::window --use-insertion-point cancel;\
+                      chunkc set window_float_next 1;\
+                      khd -e "mode activate wmcontrol"
+wminsert - left     : chunkc tiling::window --use-insertion-point west;\
+                      chunkc set window_float_next 0;\
+                      khd -e "mode activate wmcontrol"
+wminsert - down     : chunkc tiling::window --use-insertion-point south;\
+                      chunkc set window_float_next 0;\
+                      khd -e "mode activate wmcontrol"
+wminsert - up       : chunkc tiling::window --use-insertion-point north;\
+                      chunkc set window_float_next 0;\
+                      khd -e "mode activate wmcontrol"
+wminsert - right    : chunkc tiling::window --use-insertion-point east;\
+                      chunkc set window_float_next 0;\
+                      khd -e "mode activate wmcontrol"
+
+# Window Control Mode
+wmcontrol + ctrl - g : khd -e "mode activate default"
+wmcontrol - escape   : khd -e "mode activate default"
+
+wmcontrol - return   : khd -e "mode activate default"; osascript -e 'run application "iTerm Window"'
+wmcontrol - space    : khd -e "mode activate default"; khd -p "cmd - space"
+
+wmcontrol - q : chunkc tiling::window --close;\
+                khd -e "mode activate default"
+wmcontrol - r : khd -e "mode activate wmresize"
+wmcontrol - i : khd -e "mode activate wminsert"
+
+wmcontrol - t         : chunkc tiling::window --toggle float
+wmcontrol - f         : chunkc tiling::window --toggle fullscreen
+wmcontrol + shift - f : chunkc tiling::window --toggle native-fullscreen
+
+wmcontrol - 1 : chunkc tiling::desktop --layout bsp
+wmcontrol - 2 : chunkc tiling::desktop --layout float
+wmcontrol - 3 : chunkc tiling::desktop --layout monocle
+
+## Focus movement
+wmcontrol - left  : chunkc tiling::window --focus west
+wmcontrol - down  : chunkc tiling::window --focus south
+wmcontrol - up    : chunkc tiling::window --focus north
+wmcontrol - right : chunkc tiling::window --focus east
+
+## Window movment
+wmcontrol + shift - left  : chunkc tiling::window --warp west
+wmcontrol + shift - down  : chunkc tiling::window --warp south
+wmcontrol + shift - up    : chunkc tiling::window --warp north
+wmcontrol + shift - right : chunkc tiling::window --warp east
+
+
+# Window Resize And Move Mode
+wmresize + ctrl - g : khd -e "mode activate default"
+wmresize - escape   : khd -e "mode activate wmcontrol"
+wmresize - e        : chunkc tiling::desktop --equalize
+
+wmresize - left  : chunkc tiling::window --use-temporary-ratio 0.05 --adjust-window-edge west;\
+                   chunkc tiling::window --use-temporary-ratio -0.05 --adjust-window-edge east
+wmresize - down  : chunkc tiling::window --use-temporary-ratio 0.05 --adjust-window-edge south;\
+                   chunkc tiling::window --use-temporary-ratio -0.05 --adjust-window-edge north
+wmresize - up    : chunkc tiling::window --use-temporary-ratio 0.05 --adjust-window-edge north;\
+                   chunkc tiling::window --use-temporary-ratio -0.05 --adjust-window-edge south
+wmresize - right : chunkc tiling::window --use-temporary-ratio 0.05 --adjust-window-edge east;\
+                   chunkc tiling::window --use-temporary-ratio -0.05 --adjust-window-edge west
+
+wmresize + ctrl - left  : chunkc tiling::window --use-temporary-ratio 0.05 --adjust-window-edge west
+wmresize + ctrl - down  : chunkc tiling::window --use-temporary-ratio 0.05 --adjust-window-edge south
+wmresize + ctrl - up    : chunkc tiling::window --use-temporary-ratio 0.05 --adjust-window-edge north
+wmresize + ctrl - right : chunkc tiling::window --use-temporary-ratio 0.05 --adjust-window-edge east
+
+wmresize + shift - left  : chunkc tiling::window --use-temporary-ratio -0.05 --adjust-window-edge east
+wmresize + shift - down  : chunkc tiling::window --use-temporary-ratio -0.05 --adjust-window-edge north
+wmresize + shift - up    : chunkc tiling::window --use-temporary-ratio -0.05 --adjust-window-edge south
+wmresize + shift - right : chunkc tiling::window --use-temporary-ratio -0.05 --adjust-window-edge west
+
+wmresize - 1 : chunkc tiling::window --send-to-desktop 1; khd -e "mode activate default"
+wmresize - 2 : chunkc tiling::window --send-to-desktop 2; khd -e "mode activate default"
+wmresize - 3 : chunkc tiling::window --send-to-desktop 3; khd -e "mode activate default"
+wmresize - 4 : chunkc tiling::window --send-to-desktop 4; khd -e "mode activate default"
+wmresize - 5 : chunkc tiling::window --send-to-desktop 5; khd -e "mode activate default"
+wmresize - 6 : chunkc tiling::window --send-to-desktop 6; khd -e "mode activate default"
