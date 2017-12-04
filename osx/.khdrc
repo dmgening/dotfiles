@@ -44,14 +44,16 @@ wmcontrol - escape   : khd -e "mode activate default"
 wmcontrol - return   : khd -e "mode activate default"; osascript -e 'run application "iTerm Window"'
 wmcontrol - space    : khd -e "mode activate default"; khd -p "cmd - space"
 
-wmcontrol - q : chunkc tiling::window --close;\
-                khd -e "mode activate default"
+wmcontrol - q : chunkc tiling::window --close
 wmcontrol - r : khd -e "mode activate wmresize"
 wmcontrol - i : khd -e "mode activate wminsert"
+wmcontrol - e : chunkc tiling::desktop --equalize
+wmcontrol - f : chunkc tiling::desktop --toggle offset
 
 wmcontrol - t         : chunkc tiling::window --toggle float
-wmcontrol - f         : chunkc tiling::window --toggle fullscreen
-wmcontrol + shift - f : chunkc tiling::window --toggle native-fullscreen
+wmcontrol - z         : chunkc tiling::window --toggle fullscreen
+wmcontrol + shift - z : chunkc tiling::window --toggle native-fullscreen
+wmcontrol + shift - r : chunkc tiling::desktop --rotate 90
 
 wmcontrol - 1 : chunkc tiling::desktop --layout bsp
 wmcontrol - 2 : chunkc tiling::desktop --layout float
@@ -73,7 +75,6 @@ wmcontrol + shift - right : chunkc tiling::window --warp east
 # Window Resize And Move Mode
 wmresize + ctrl - g : khd -e "mode activate default"
 wmresize - escape   : khd -e "mode activate wmcontrol"
-wmresize - e        : chunkc tiling::desktop --equalize
 
 wmresize - left  : chunkc tiling::window --use-temporary-ratio 0.05 --adjust-window-edge west;\
                    chunkc tiling::window --use-temporary-ratio -0.05 --adjust-window-edge east

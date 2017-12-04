@@ -45,8 +45,8 @@
 
        :completion
        company           ; the ultimate code completion backend
-      ;ivy               ; a search engine for love and life
-       helm              ; the *other* search engine for love and life
+       ivy               ; a search engine for love and life
+      ;helm              ; the *other* search engine for love and life
       ;ido               ; the other *other* search engine...
 
        :ui
@@ -130,7 +130,7 @@
       ;irc               ; how neckbeards socialize
       ;rss               ; emacs as an RSS reader
       ;twitter           ; twitter client https://twitter.com/vnought
-      ;write             ; emacs as a word processor (latex + org + markdown)
+       write             ; emacs as a word processor (latex + org + markdown)
 
        ;; Private modules named after your username are loaded automatically.
        ;; Leaving this here is harmless though.
