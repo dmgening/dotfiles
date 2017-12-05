@@ -24,8 +24,8 @@ chunkc set window_float_topmost          1
 
 chunkc set window_region_locked          1
 
-chunkc set focused_border_color          0xff839a57
-chunkc set focused_border_width          8
+chunkc set focused_border_color          0xff000000
+chunkc set focused_border_width          3
 chunkc set focused_border_radius         0
 chunkc set focused_border_skip_floating  1
 

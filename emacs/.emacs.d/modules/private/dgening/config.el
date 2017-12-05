@@ -37,7 +37,7 @@
 
 ;;
 (after! doom-themes
-  (setq doom-theme 'doom-peacock)
+  (setq doom-theme 'doom-one-light)
   ;; Since Fira Mono doesn't have an italicized variant, highlight it instead
   (set-face-attribute 'italic nil
                       :weight 'ultra-light

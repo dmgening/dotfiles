@@ -1,6 +1,7 @@
 .local/
 .cask/
 var/
+elpa/
 /init.el
 
 # emacs tempfiles that shouldn't be there

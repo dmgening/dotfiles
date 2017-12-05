@@ -62,10 +62,15 @@ if (( $#commands[(i)lesspipe(|.sh)] )); then
   export LESSOPEN="| /usr/bin/env $commands[(i)lesspipe(|.sh)] %s 2>&-"
 fi
 
-
 #
 # Install shell extensions if availiable
 #
 
 test $(which pyenv) && eval "$(pyenv init -)"
 test $(which pyenv-virtualenv-init) && eval "$(pyenv virtualenv-init -)"
+
+#
+# Aliases
+#
+
+alias hl="source-highlight -t 4 -n -f ESC"
