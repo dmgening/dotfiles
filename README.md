@@ -3,11 +3,7 @@ Yet Another Dotfiles Repo
 Hello stranger! Feel free to browse, fork or criticize any part of my work :)
 
 ## Fetching upstreams
-[hlissner/doom-emac](https://github.com/hlissner/doom-emacs) via git subtree pull
-``` sh
-	git subtree pull --squash --prefix=emacs/.emacs.d doom-emacs master
-```
-
+[syl20bnr/spacemacs](https://github.com/syl20bnr/spacemacs) and
 [sorin-ionescu/prezto](https://github.com/sorin-ionescu/prezto) via git submodule
 ``` sh
 	git submodule update --init --recursive
@@ -43,7 +39,7 @@ Upstream implemented via git subtree.
 
 **Zsh**
 Pretty much basic config with custom PS1, uses
-[sorin-ionescu/prezto](https://github.com/sorin-ionescu/prezto). 
+[sorin-ionescu/prezto](https://github.com/sorin-ionescu/prezto).
 Availiable via git submodule.
 
 **OS X**
