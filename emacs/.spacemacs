@@ -10,6 +10,10 @@
    dotspacemacs-configuration-layer-path '()
    dotspacemacs-configuration-layers
    '(
+     html
+     javascript
+     php
+     lua
      ;; lang
      emacs-lisp
      markdown
@@ -64,8 +68,8 @@
    dotspacemacs-major-mode-emacs-leader-key "C-M-m"
 
    ;; Looks
-   dotspacemacs-themes '(doom-one)
-   dotspacemacs-default-font '("Monaco"
+   dotspacemacs-themes '(material-light)
+   dotspacemacs-default-font '("Droid Sans Mono"
                                :size 12
                                :weight normal
                                :width normal
