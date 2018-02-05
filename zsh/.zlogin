@@ -1,6 +1,3 @@
 if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/runcoms/zlogin" ]]; then
   source "${ZDOTDIR:-$HOME}/.zprezto/runcoms/zlogin"
 fi
-
-eval "$(pyenv init -)"
-
