@@ -63,13 +63,6 @@ if (( $#commands[(i)lesspipe(|.sh)] )); then
 fi
 
 #
-# Install shell extensions if availiable
-#
-
-test $(which pyenv) && eval "$(pyenv init -)"
-test $(which pyenv-virtualenv-init) && eval "$(pyenv virtualenv-init -)"
-
-#
 # Aliases
 #
 

@@ -18,6 +18,8 @@ zstyle ':prezto:load' pmodule \
   'completion' \
   'prompt' \
   'homebrew' \
+  'python' \
+  'docker' \
   'ssh' \
   'git'
 
