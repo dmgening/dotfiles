@@ -26,6 +26,7 @@
             shell-default-term-shell "/bin/zsh"
             shell-default-full-span nil)
      (helm :variables helm-enable-auto-resize t)
+     theming
      auto-completion
      spell-checking
      syntax-checking
@@ -35,7 +36,7 @@
      dmgening)
    dotspacemacs-additional-packages '()
    dotspacemacs-frozen-packages '()
-   dotspacemacs-excluded-packages '(evil-unimpaired)
+   dotspacemacs-excluded-packages '(evil-unimpaired spaceline)
    dotspacemacs-install-packages 'used-only))
 
 (defun dotspacemacs/init ()
@@ -66,7 +67,7 @@
 
    ;; Looks
    dotspacemacs-themes '(doom-one)
-   dotspacemacs-mode-line-theme 'all-the-icons
+   dotspacemacs-mode-line-theme 'vanilla
    dotspacemacs-default-font '("Menlo"
                                :size 12
                                :weight normal
