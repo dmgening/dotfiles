@@ -9,7 +9,8 @@
    dotspacemacs-ask-for-lazy-installation t
    dotspacemacs-configuration-layer-path '("~/.emacs.private.d")
    dotspacemacs-configuration-layers
-   '(;; lang
+   '(go
+     ;; lang
      html
      javascript
      react
@@ -25,7 +26,10 @@
             shell-default-height 50
             shell-default-term-shell "/bin/zsh"
             shell-default-full-span nil)
-     (helm :variables helm-enable-auto-resize t)
+     ;; (helm :variables
+     ;;       helm-enable-auto-resize t)
+     (ivy :variables
+          ivy-enable-advanced-buffer-information t)
      theming
      auto-completion
      spell-checking
@@ -34,7 +38,7 @@
      git
      ;; private layers
      dmgening)
-   dotspacemacs-additional-packages '()
+   dotspacemacs-additional-packages '(shrink-path)
    dotspacemacs-frozen-packages '()
    dotspacemacs-excluded-packages '(evil-unimpaired spaceline)
    dotspacemacs-install-packages 'used-only))
@@ -68,11 +72,11 @@
    ;; Looks
    dotspacemacs-themes '(doom-one)
    dotspacemacs-mode-line-theme 'vanilla
-   dotspacemacs-default-font '("Menlo"
-                               :size 12
+   dotspacemacs-default-font '("Source Code Variable"
+                               :size 14
                                :weight normal
                                :width normal
-                               :powerline-scale 1.1)
+                               :powerline-scale 1.3)
    dotspacemacs-colorize-cursor-according-to-state t
    dotspacemacs-line-numbers
    '(:relative nil
@@ -101,7 +105,12 @@
    ))
 
 (defun dotspacemacs/user-init ()
-  (setq exec-path-from-shell-arguments '("-l")))
+  (with-eval-after-load 'org
+    (org-babel-do-load-languages
+     'org-babel-load-languages '((emacs-lisp . t)
+                                 (python . t)
+                                 (org . t)
+                                 (sh . t)))))
 
 (defun dotspacemacs/user-config ()
   (setq doom-themes-enable-bold t
