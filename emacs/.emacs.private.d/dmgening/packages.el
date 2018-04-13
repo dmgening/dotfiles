@@ -34,7 +34,14 @@
   '(all-the-icons
     vue-mode
     shrink-path
+    (org-textile :location local)
     (doom-modeline :location local)))
+
+(defun dmgening/init-org-textile()
+  (spacemacs|use-package-add-hook org
+    :post-config
+    (require 'ox-textile)
+    ))
 
 (defun dmgening/init-all-the-icons ()
   (use-package all-the-icons
