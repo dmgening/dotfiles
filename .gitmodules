@@ -1,9 +1,10 @@
 [submodule "zsh/.zprezto"]
 	path = zsh/.zprezto
 	url = git@github.com:sorin-ionescu/prezto.git
+	fetchRecurseSubmodules = true
+	shallow = true
 [submodule "emacs/.emacs.d"]
 	path = emacs/.emacs.d
-	url = https://github.com/syl20bnr/spacemacs
-[submodule "emacs/.emacs.private.d/dmgening/local/org-textile"]
-	path = emacs/.emacs.private.d/dmgening/local/org-textile
-	url = git@github.com:yashi/org-textile.git
+	url = git@github.com:hlissner/doom-emacs.git
+	branch = develop
+	shallow = true
