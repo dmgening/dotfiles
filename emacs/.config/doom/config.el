@@ -2,5 +2,9 @@
 
 ;;; Code:
 
-(provide 'config)
-;;; config.el ends here
+(load! "+bindings")
+(load! "+theme")
+
+(when EMACS26+ (load! "+posframe"))
+
+(global-aggressive-indent-mode 1)
