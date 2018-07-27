@@ -35,7 +35,10 @@
   (lsp-define-stdio-client lsp-python
                            "python"
                            #'projectile-project-root
-                           '("pyls")))
+                           '("pyls"))
+  (add-hook! 'lsp-after-initialize-hook
+    (lsp--set-configuration
+     `(:pyls (:configurationSources ("flake8"))))))
 
 (def-package! lsp-css
   :when (featurep! +web)
