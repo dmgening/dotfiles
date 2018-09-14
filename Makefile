@@ -2,8 +2,7 @@
 all: emacs osx vim zsh
 
 emacs:
-	git subtree pull --squash --prefix=emacs/.emacs.d doom-emacs master
-	YES=1 make -C emacs/.emacs.d
+	make -C emacs/.emacs.d
 	stow -t ~ emacs
 
 osx:
