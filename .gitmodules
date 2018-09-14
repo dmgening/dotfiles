@@ -2,9 +2,3 @@
 	path = zsh/.zprezto
 	url = git@github.com:sorin-ionescu/prezto.git
 	fetchRecurseSubmodules = true
-	shallow = true
-[submodule "emacs/.emacs.d"]
-	path = emacs/.emacs.d
-	url = git@github.com:hlissner/doom-emacs.git
-	branch = develop
-	shallow = true
