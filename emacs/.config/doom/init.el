@@ -18,7 +18,6 @@
        doom
        doom-dashboard
        doom-modeline
-       ;; (modeline +evil)
        doom-quit
        evil-goggles
        hl-todo
@@ -62,4 +61,9 @@
        web
 
        :config
-       (default +bindings +snippets +evil-commands))
+       (default +bindings +snippets +evil-commands)
+
+       :tools-x
+       (lsp +python)
+
+       )

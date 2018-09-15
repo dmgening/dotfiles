@@ -30,12 +30,13 @@
 
 (def-package! lsp-python
   :when (featurep! +python)
+  :after python
   :hook (python-mode . lsp-python-enable)
   :config
   (lsp-define-stdio-client lsp-python
                            "python"
                            #'projectile-project-root
-                           '("pyls"))
+                           '("python" "-m" "pyls"))
   (add-hook! 'lsp-after-initialize-hook
     (lsp--set-configuration
      `(:pyls (:configurationSources ("flake8"))))))
