@@ -10,11 +10,11 @@ if [[ -s "${ZDOTDIR:-$HOME}/zprezto/init.zsh" ]]; then
   source "${ZDOTDIR:-$HOME}/zprezto/init.zsh"
 fi
 
-# Set compdump file location
-compinit -d "$XDG_DATA_DIR/zcompdump"
-
-# Set history options
-HISTFILE="$XDG_DATA_DIR/zhistory"
+# Set compdump and history file locations
+compinit -d "$XDG_DATA_HOME/zsh/zcompdump"
+HISTFILE="$XDG_DATA_HOME/zsh/zhistory"
+# Ensure data directory exists
+[[ -d "$XDG_DATA_HOME/zsh" ]] || mkdir -p "$XDG_DATA_HOME/zsh" > /dev/null 2>&1
 
 # Update CWD inside emacs term emulators
 if [ -n "$INSIDE_EMACS" ]; then

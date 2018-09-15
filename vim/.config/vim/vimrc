@@ -1,10 +1,11 @@
 set nocompatible
 filetype off
 
-"" Set runtime dir
-set runtimepath=~/.local/shared/vim,$VIMRUNTIME
-"" Override info file location
-set viminfofile=~/.local/shared/vim/viminfo
+"" Set runtime dir and override history location
+set runtimepath=$XDG_DATA_HOME/vim,$VIMRUNTIME
+set viminfofile=$XDG_DATA_HOME/vim/viminfo
+"" Ensure runtime directory exists
+silent ![[ -d "$XDG_DATA_HOME/vim" ]] || mkdir -p "$XDG_DATA_HOME/vim" > /dev/null 2>&1
 
 "" Package managment
 " source ~/.vim/plug.vim
