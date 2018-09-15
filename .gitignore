@@ -1,2 +1,4 @@
 vim/bundle/*
 !vim/bundle/vundle
+
+git/.config/git/*.local

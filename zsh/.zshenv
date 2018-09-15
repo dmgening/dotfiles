@@ -1,19 +1,11 @@
 #
-# Defines environment variables.
-#
-# Authors:
-#   Sorin Ionescu <sorin.ionescu@gmail.com>
+# Defines config and data directories paths.
 #
 
-export ZDOTDIR="$HOME/.config/zsh"
+export XDG_CONFIG_HOME="$HOME/.config"
+export XDG_DATA_HOME="$HOME/.local/share"
+export XDG_CACHE_HOME="$HOME/.local/cache"
 
-export LC_ALL=en_US.UTF-8
-export LANG=en_US.UTF-8
+export ZDOTDIR="$XDG_CONFIG_HOME/zsh"
 
-export PYENV_ROOT="$HOME/.local/share/pyenv"
-export LESSHISTFILE="$HOME/.local/share/lesshst"
-
-# Ensure that a non-login, non-interactive shell has a defined environment.
-if [[ ( "$SHLVL" -eq 1 && ! -o LOGIN ) && -s "${ZDOTDIR:-$HOME}/.zprofile" ]]; then
-  source "${ZDOTDIR:-$HOME}/.zprofile"
-fi
+source "$ZDOTDIR/.zshenv"
