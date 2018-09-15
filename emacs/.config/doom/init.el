@@ -17,8 +17,8 @@
        :ui
        doom
        doom-dashboard
-       ;; doom-modeline
-       (modeline +evil)
+       doom-modeline
+       ;; (modeline +evil)
        doom-quit
        evil-goggles
        hl-todo
@@ -57,7 +57,7 @@
        markdown
        (org +attach +babel +capture +export +present)
        plantuml
-       python
+       (python +pyenv +ipython)
        sh
        web
 

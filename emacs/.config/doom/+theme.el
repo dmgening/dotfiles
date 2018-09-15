@@ -6,5 +6,5 @@
     (lsp-face-highlight-read    :underline (doom-color 'highlight) :foreground (doom-color 'highlight) :weight 'demibold)
     (lsp-face-highlight-write   :underline (doom-color 'highlight) :foreground (doom-color 'highlight) :weight 'demibold)))
 
-(setq doom-theme 'doom-challenger-deep)
+(setq doom-theme 'doom-nova)
 (add-hook 'doom-load-theme-hook #'*doom-themes-custom-set-faces)
