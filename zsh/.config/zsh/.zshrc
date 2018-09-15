@@ -10,6 +10,12 @@ if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
   source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
 fi
 
+# Set compdump file location
+compinit -d "$HOME/.local/share/zcompdump"
+
+# Set history options
+HISTFILE="$HOME/.local/share/zhistory"
+
 # Update CWD inside emacs term emulators
 if [ -n "$INSIDE_EMACS" ]; then
     # function to set the dired and host for ansiterm

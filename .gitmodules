@@ -1,5 +1,5 @@
 [submodule "zsh/.zprezto"]
-	path = zsh/.zprezto
+	path = zsh/.config/zsh/zprezto
 	url = git@github.com:sorin-ionescu/prezto.git
 	fetchRecurseSubmodules = true
 [submodule "emacs/.emacs.d"]
