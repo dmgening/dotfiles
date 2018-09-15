@@ -1,13 +1,18 @@
 set nocompatible
 filetype off
 
-"" Package managment
-source ~/.vim/plug.vim
+"" Set runtime dir
+set runtimepath=~/.local/shared/vim,$VIMRUNTIME
+"" Override info file location
+set viminfofile=~/.local/shared/vim/viminfo
 
-"" Load settings
-for f in split(glob('~/.vim/settings/*'), '\n')
-        exe 'source' f
-endfor
+"" Package managment
+" source ~/.vim/plug.vim
+
+" "" Load settings
+" for f in split(glob('~/.vim/settings/*'), '\n')
+"         exe 'source' f
+" endfor
 
 "" ## Common options
 set noswapfile nobackup nowritebackup

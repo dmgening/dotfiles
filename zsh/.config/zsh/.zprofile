@@ -17,6 +17,7 @@ fi
 # Editors
 #
 
+export VIM="$XDG_CONFIG_HOME/vim"
 export EDITOR="$(which emacsclient) -nw"
 export VISUAL="$(which emacsclient) -nw"
 export PAGER='less'
