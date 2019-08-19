@@ -18,8 +18,16 @@ fi
 #
 
 export VIM="$XDG_CONFIG_HOME/vim"
-export EDITOR="$(which emacsclient) -nw"
-export VISUAL="$(which emacsclient) -nw"
+
+if [[ -f "$(which emacsclient)" ]]; then 
+  export EDITOR="$(which emacsclient) -nw"
+elif [[ -f "$(which vim)" ]]; then 
+  export EDITOR="$(which vim)"
+else 
+  export EDITOR="$(which nano)"
+fi
+
+export VISUAL="$EDITOR"
 export PAGER='less'
 
 #
@@ -68,3 +76,11 @@ fi
 #
 
 alias hl="source-highlight -t 4 -n -f ESC"
+
+#
+# Local overrides
+#
+
+if [[ -f "~/.zprofile" ]]; then 
+  source "~/.zprofile"
+fi
