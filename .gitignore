@@ -2,3 +2,6 @@ vim/bundle/*
 !vim/bundle/vundle
 
 git/.config/git/*.local
+
+zsh/.config/zsh/.zcompdump
+zsh/.config/zsh/.zcompcache/*

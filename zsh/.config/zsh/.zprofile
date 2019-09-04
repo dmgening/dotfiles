@@ -17,7 +17,9 @@ fi
 # Editors
 #
 
-export VIM="$XDG_CONFIG_HOME/vim"
+if [[ -d "$XDG_CONFIG_HOME/vim" ]]; then
+  export VIM="$XDG_CONFIG_HOME/vim"
+fi
 
 if [[ -f "$(which emacsclient)" ]]; then 
   export EDITOR="$(which emacsclient) -nw"
@@ -41,6 +43,8 @@ fi
 #
 # Paths
 #
+
+export PATH="$XDG_BIN_HOME:$PATH"
 
 # Ensure path arrays do not contain duplicates.
 typeset -gU cdpath fpath mailpath path
