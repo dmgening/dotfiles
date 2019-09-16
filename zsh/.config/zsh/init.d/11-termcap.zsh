@@ -2,8 +2,14 @@
 # Load plugins
 #
 
+#
+# Colorize requirers grc and pygmentize for work
+#
+
 antibody bundle <<EOF
 chrissicool/zsh-256color
+ael-code/zsh-colored-man-pages
+unixorn/warhol.plugin.zsh
 EOF
 
 #

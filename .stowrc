@@ -1,0 +1,5 @@
+--verbose
+--ignore=README.md
+--ignore=.git(ignore|modules)
+--ignore=Makefile
+--ignore=.editorconfig

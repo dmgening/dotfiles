@@ -172,8 +172,8 @@ EOF
 #
 
 ## zsh-users/zsh-history-substring-search
-export HISTORY_SUBSTRING_SEARCH_FUZZY=YES
+export HISTORY_SUBSTRING_SEARCH_FUZZY=yes
 
 # Cycle through history matches via arrow keys
-bindkey "$terminfo[kcuu1]" history-substring-search-up
-bindkey "$terminfo[kcud1]" history-substring-search-down
+bindkey -M emacs "$key_info[Control]f" history-substring-search-up
+bindkey -M emacs "$key_info[Control]b" history-substring-search-down
