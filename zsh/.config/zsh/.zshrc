@@ -6,7 +6,7 @@
 # Load plugin files from $ZDOTDIR/plugins in order
 #
 
-for file in $ZDOTDIR/plugins/**/*(.); do
+for file in $ZDOTDIR/init.d/**/*(.); do
     source $file
 done
 

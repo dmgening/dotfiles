@@ -1,4 +1,12 @@
 #
+# Load plugins
+#
+
+antibody bundle <<EOF
+chrissicool/zsh-256color
+EOF
+
+#
 # Provides for easier use of 256 colors and effects.
 # From https://github.com/sorin-ionescu/prezto/blob/master/modules/spectrum/init.zsh
 #
