@@ -4,6 +4,7 @@
 .zcompcache/
 
 # Local overrides in .config/zsh
-.config/zsh/locals/
+.config/zsh/locals/*.zsh
+!.config/zsh/locals/*.example.zsh
 # Local config
 .config/zsh/config.zsh

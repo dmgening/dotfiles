@@ -1,3 +1,6 @@
+#
+# pyenv python version manager
+#
 
 # Set default pyenv path
 if [[ -z "$PYENV_ROOT" ]]; then
