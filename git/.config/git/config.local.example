@@ -3,3 +3,5 @@
     signingkey =
 [commit]
     gpgsign = true
+[includeIf "gitdir:"~/Projects/"]
+    path = config.projects.local
