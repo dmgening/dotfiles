@@ -11,7 +11,7 @@ SPACESHIP_DIR_LOCK_SYMBOL=" 🔒 "
 # Disable emoji in prompt via env variable
 #
 
-if [[ -n "$DISABLE_PS_EMOJI" ]]; then
+if [[ -n "$PS_DISABLE_EMOJI" ]]; then
     SPACESHIP_DIR_LOCK_SYMBOL=" [locked] "
     SPACESHIP_JOBS_SYMBOL="[jobs] "
     SPACESHIP_EXIT_CODE_SYMBOL="[exit] "
