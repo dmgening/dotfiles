@@ -1,19 +1,15 @@
+#!/usr/bin/env zsh
 #
-# Load and configure prompt theme bundle
-# 
+# conf.d/021-prompt-spaceship.sh
+#
 
 SPACESHIP_CHAR_SUFFIX=" "
 SPACESHIP_CHAR_SYMBOL="λ"
 SPACESHIP_GIT_SYMBOL="🔀 "
 SPACESHIP_DIR_LOCK_SYMBOL=" 🔒 "
-
 SPACESHIP_VENV_SHOW=false
 
-#
-# Disable emoji in prompt via env variable
-#
-
-if [[ -n "$PS_DISABLE_EMOJI" ]]; then
+if [[ -n "$PROMPT_DISABLE_EMOJI" ]]; then
     SPACESHIP_DIR_LOCK_SYMBOL=" [locked] "
     SPACESHIP_JOBS_SYMBOL="[jobs] "
     SPACESHIP_EXIT_CODE_SYMBOL="[exit] "
@@ -42,8 +38,3 @@ if [[ -n "$PS_DISABLE_EMOJI" ]]; then
     SPACESHIP_KUBECONTEXT_SYMBOL="(k8s) "
     SPACESHIP_TERRAFORM_SYMBOL="(terraform) "
 fi
-
-antibody bundle <<EOF
-denysdovhan/spaceship-prompt
-zdharma/fast-syntax-highlighting
-EOF

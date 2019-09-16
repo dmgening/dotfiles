@@ -1,5 +1,6 @@
+#!/usr/bin/env zsh
 #
-# Options
+# conf.d/010-history.sh
 #
 
 setopt BANG_HIST                 # Treat the '!' character specially during expansion.
@@ -12,19 +13,21 @@ setopt HIST_FIND_NO_DUPS         # Do not display a previously found event.
 setopt HIST_IGNORE_SPACE         # Do not record an event starting with a space.
 setopt HIST_SAVE_NO_DUPS         # Do not write a duplicate event to the history file.
 setopt HIST_VERIFY               # Do not execute immediately upon history expansion.
-setopt HIST_BEEP                 # Beep when accessing non-existent history.
+
+unsetopt HIST_BEEP               # Beep when accessing non-existent history.
 
 #
 # Variables
 #
 
-HISTFILE=$ZDATADIR/zhistory     # The path to the history file.
-HISTSIZE=100000                  # The maximum number of events to save in the internal history.
-SAVEHIST=100000                  # The maximum number of events to save in the history file.
+HISTFILE=$ZSH_CACHE_HOME/zhistory  # The path to the history file.
+HISTSIZE=50000                     # The maximum number of events to save in the internal history.
+SAVEHIST=50000                     # The maximum number of events to save in the history file.
 
 #
-# Aliases
+# Plugins
 #
 
-# Lists the ten most used commands.
-alias history-stat="history 0 | awk '{print \$2}' | sort | uniq -c | sort -n -r | head"
+zplugin ice wait"1" lucid
+zplugin load zdharma/history-search-multi-word
+zstyle ":history-search-multi-word" page-size "10"
