@@ -1,0 +1,10 @@
+# Accidental zsh data files in config dir
+.zcompdump
+.zhistory
+.zcompcache/
+
+# Local overrides in .config/zsh
+.config/zsh/locals/*.zsh
+!.config/zsh/locals/*.example.zsh
+# Local config
+.config/zsh/config.zsh

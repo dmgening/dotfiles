@@ -1,3 +1,6 @@
-if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/runcoms/zlogin" ]]; then
-  source "${ZDOTDIR:-$HOME}/.zprezto/runcoms/zlogin"
-fi
+for src in runcoms locals; do
+    script="$ZDOTDIR/$src/zlogin.zsh"
+    if [[ -f $script ]]; then;
+        source $script
+    fi
+done
