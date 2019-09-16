@@ -7,6 +7,8 @@ SPACESHIP_CHAR_SYMBOL="λ"
 SPACESHIP_GIT_SYMBOL="🔀 "
 SPACESHIP_DIR_LOCK_SYMBOL=" 🔒 "
 
+SPACESHIP_VENV_SHOW=false
+
 #
 # Disable emoji in prompt via env variable
 #
