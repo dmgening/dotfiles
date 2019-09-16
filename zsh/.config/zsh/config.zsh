@@ -1,0 +1,5 @@
+#
+# Editor lookup
+#
+
+EDITORS_SKIP_EMACSCLIENT=YES
