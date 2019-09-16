@@ -11,12 +11,6 @@ if [[ "$TERM" == 'dumb' ]]; then
 fi
 
 #
-# Options
-#
-
-setopt BEEP                     # Beep on error in line editor.
-
-#
 # Variables
 #
 
