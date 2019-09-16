@@ -10,6 +10,7 @@ comp_cache_dir=${ZDATADIR}/zcompcache
 #
 
 # FIXME: .zcompdump is created on start in $ZDOTDIR
+autoload -U compinit
 compinit -u -d $comp_dump_file
 
 #

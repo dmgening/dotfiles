@@ -1,19 +1,6 @@
-#
-# Executes commands at the start of an interactive session.
-#
-
-#
-# Load plugin files from $ZDOTDIR/plugins in order
-#
-
-for file in $ZDOTDIR/init.d/**/*(.); do
-    source $file
-done
-
-#
-# Load local overrides
-#
-
-for file in $(find $ZDOTDIR -iname '.zshrc*.local'); do
-    source $file
+for src in runcoms locals; do
+    script="$ZDOTDIR/$src/zshrc.zsh"
+    if [[ -f $script ]]; then;
+        source $script
+    fi
 done
