@@ -1,24 +1,6 @@
+#!/usr/bin/env zsh
 #
-# Load plugins
-#
-
-#
-# Colorize requirers grc and pygmentize for work
-#
-
-antibody bundle <<EOF
-chrissicool/zsh-256color
-ael-code/zsh-colored-man-pages
-unixorn/warhol.plugin.zsh
-EOF
-
-#
-# Provides for easier use of 256 colors and effects.
-# From https://github.com/sorin-ionescu/prezto/blob/master/modules/spectrum/init.zsh
-#
-# Authors:
-#   P.C. Shyamshankar <sykora@lucentbeing.com>
-#   Sorin Ionescu <sorin.ionescu@gmail.com>
+# conf.d/002-colormap.sh
 #
 
 # Return if requirements are not found.

@@ -3,8 +3,8 @@
 .zhistory
 .zcompcache/
 
-# Local overrides in .config/zsh
-.config/zsh/locals/*.zsh
-!.config/zsh/locals/*.example.zsh
-# Local config
-.config/zsh/config.zsh
+# Config file
+.config/zsh/config.sh
+
+# Plugins 
+.config/zsh/plugins/**
