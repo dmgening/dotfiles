@@ -2,6 +2,12 @@
 # Executes commands at the start of an interactive session.
 #
 
+# Set zplugin locations and settings
+declare -A ZPLGM
+ZPLGM[BIN_DIR]="$XDG_DATA_HOME/zplugin/bin"
+ZPLGM[HOME_DIR]="$XDG_DATA_HOME/zplugin"
+ZPLGM[ZCOMPDUMP_PATH]="$ZSH_CACHE_HOME/zcompdump"
+
 # Check if zplugin installed or install it from github
 if [[ ! -d $ZPLGM[BIN_DIR] ]] {
     (
@@ -19,7 +25,8 @@ if [[ -a $ZSH_HOME_DIR/config.sh ]] {
     source $ZSH_HOME_DIR/config.sh
 } 
 
-# Load configs from conf.d
-for conf ("${(f)$(ls $ZSH_CONFIG_HOME/config.d/*(.))}") {
-    source $conf
-}
+# Load configs from config.d
+for conf ($ZSH_CONFIG_HOME/config.d/*) source $conf
+
+# Load run hooks from hooks
+for hook ($ZSH_CONFIG_HOME/hooks/*) source $hook
