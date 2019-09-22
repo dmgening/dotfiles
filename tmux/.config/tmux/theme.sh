@@ -64,10 +64,9 @@ function window-status-format {
 
 
 function status-left-format {
-    local session="Session $(_fg ${C[green]})$(_var session_name)$(_reset)"
-    local hostname=" on $(_fg ${C[cyan]})$(_var host)$(_reset)"
-    local result="${session}${hostname} running"
-    echo "$(_wrap $(_reset) ${result}) "
+    local session=$(_fg ${C[green]})$(_var session_name)$(reset) \
+          hostname="$(_fg ${C[cyan]})$(_var host)$(reset)"
+    echo "${session}@${hosname}"
 }
 
 
