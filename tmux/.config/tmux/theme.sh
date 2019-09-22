@@ -89,40 +89,7 @@ tmux set -g window-status-format         "$(window-status-format)" \;\
      set -g status-right                 "$(status-right-format)"  \;\
      set -g status-right-length          40                        \;\
      set -g status-justify               left                      \;\
-     set -g status-utf8                  on                        \;\
      set -g status-position              top                       \;\
      set -g status-bg                    default                   \;\
      set -g status-fg                    default
-
-
-
-
-
-
-
-# local flags = "${(j::)$( echo "$(_if k $(_style $flags[$k]))"}"
-
-
-# read -r -d '' window_status_format <<-"EOF"
-#     "#[fg=colour2]#{?window_bell_flag,!,}"
-#     "#[fg=colour2]#{?window_active,A,}"
-#     "#[fg=colour2]#{?window_zoomed_flag,Z,}"
-#     "#[fg=colour2]#{?window_silence_flag,S,}"
-#     "#[fg=default]#{window_index}:#[fg=default,none,bg=default,none][#{=10:window_name}]"
-# EOF
-
-# export WINDOW_STATUS_FORMAT="$window_status_format"
-
-
-# "#{?window_silence_flag}"
-# "#{?window-status-flags-store,(#{window-status-flags-store}),}"
-# "#{window_index}:#[bg=default,none,fg=dim][#{=10:window_name}]#[fg=default,bg=default,none]#{E:@window-status-flags}"
-#[bg=default,none,fg=bold]{#{=10:window_name}}#[fg=default,bg=default,none]#{E:@window-status-flags}"
-
-# {?window_silence_flag,#[fg=dimmed]?,}\
-# {?window_activity_flag,#[fg=colour2]*,}\
-# {?window_active,#[fg=colour10]+,}\
-# {?window_bell_flag,#[fg=colour1]!,}\
-# {?window_zoomed_flag,z,}\
-# {?window_last_flag,~,}\
 

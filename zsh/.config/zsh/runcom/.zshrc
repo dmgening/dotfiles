@@ -29,6 +29,6 @@ if [[ -a $ZSH_HOME_DIR/config.sh ]] {
 for conf ($ZSH_CONFIG_HOME/config.d/*) source $conf
 
 # Load run hooks from hooks
-if [[ -d $ZSH_CONFIG_HOME/hooks ]] {
+if [[ -d "$ZSH_CONFIG_HOME/hooks" ]]; then
     for hook ($ZSH_CONFIG_HOME/hooks/*) source $hook
-}
+fi
