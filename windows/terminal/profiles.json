@@ -1,0 +1,89 @@
+
+// To view the default settings, hold "alt" while clicking on the "Settings" button.
+// For documentation on these settings, see: https://aka.ms/terminal-documentation
+
+{
+    "$schema": "https://aka.ms/terminal-profiles-schema",
+
+    "defaultProfile": "{8bf2d7ce-4310-535d-8cfe-1fe3b5f5a5b1}",
+
+    "profiles": {
+        "defaults": {
+            "colorScheme": "Material",
+            "fontFace": "Fira Code",
+            "fontSize": 10
+        },
+        "list": [
+            {
+                "guid": "{8bf2d7ce-4310-535d-8cfe-1fe3b5f5a5b1}",
+                "hidden": false,
+                "name": "ArchLinux",
+                "source": "Windows.Terminal.Wsl"
+            },
+            {
+                "guid": "{61c54bbd-c2c6-5271-96e7-009a87ff44bf}",
+                "name": "Windows PowerShell",
+                "commandline": "powershell.exe",
+                "hidden": false
+            },
+            {
+                "guid": "{0caa0dad-35be-5f56-a8ff-afceeeaa6101}",
+                "name": "cmd",
+                "commandline": "cmd.exe",
+                "hidden": false
+            },
+            {
+                "guid": "{2c4de342-38b7-51cf-b940-2309a097f518}",
+                "hidden": false,
+                "name": "Ubuntu",
+                "source": "Windows.Terminal.Wsl"
+            },
+            {
+                "guid": "{b453ae62-4e3d-5e58-b989-0a998ec441b8}",
+                "hidden": true,
+                "name": "Azure Cloud Shell",
+                "source": "Windows.Terminal.Azure"
+            },
+            {
+                "guid": "{07b52e3e-de2c-5db4-bd2d-ba144ed6c273}",
+                "hidden": false,
+                "name": "Ubuntu-20.04",
+                "source": "Windows.Terminal.Wsl"
+            }
+        ]
+    },
+
+    // Add custom color schemes to this array
+    "schemes": [
+        {
+            "red": "#C50F1F",
+            "blue": "#0037DA",
+            "cyan": "#3A96DD",
+            "name": "Material",
+            "black": "#0C0C0C",
+            "green": "#13A10E",
+            "white": "#CCCCCC",
+            "purple": "#881798",
+            "yellow": "#C19C00",
+            "brightRed": "#E74856",
+            "brightBlue": "#3B78FF",
+            "brightCyan": "#61D6D6",
+            "brightBlack": "#767676",
+            "brightGreen": "#16C60C",
+            "brightWhite": "#F2F2F2",
+            "brightPurple": "#B4009E",
+            "brightYellow": "#F9F1A5",
+            "background": "#1B1E2B",
+            "foreground": "#CCCCCC"
+        }
+    ],
+
+    // Add any keybinding overrides to this array.
+    // To unbind a default keybinding, set the command to "unbound"
+    "keybindings": [
+        // Split panes
+        {"command": { "action": "splitPane", "split": "horizontal", "splitMode": "duplicate" },   "keys": ["ctrl+\\"]},
+        {"command": { "action": "splitPane", "split": "vertical", "splitMode": "duplicate" },   "keys": ["ctrl+shift+\\"]}
+    ]
+
+}

@@ -12,3 +12,5 @@
   change-commits = "!f() { VAR=$1; OLD=$2; NEW=$3; shift 3; git filter-branch --env-filter \"if [[ \\\"$`echo $VAR`\\\" = '$OLD' ]]; then export $VAR='$NEW'; fi\" $@; }; f "
 [include]
   path = config.local
+[url "ssh://git@stash.lamoda.ru:7999"]
+  insteadOf = https://stash.lamoda.ru/scm

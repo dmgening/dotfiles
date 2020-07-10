@@ -66,7 +66,7 @@ function window-status-format {
 function status-left-format {
     local session=$(_fg ${C[green]})$(_var session_name)$(reset) \
           hostname="$(_fg ${C[cyan]})$(_var host)$(reset)"
-    echo "${session}@${hosname}"
+    echo "${session}@${hostname} "
 }
 
 

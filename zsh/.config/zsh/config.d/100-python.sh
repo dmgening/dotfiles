@@ -32,3 +32,6 @@ function () {
         fi
     done
 }
+
+export POETRY_HOME=${POETRY_HOME:-${XDG_DATA_HOME}/poetry}
+export PATH=${POETRY_HOME}/bin:$PATH
