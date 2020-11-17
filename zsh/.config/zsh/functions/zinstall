@@ -1,0 +1,43 @@
+#!/usr/bin/env zsh
+#
+# functions/zinstall
+#
+
+
+function __install_pyenv() {
+    printf "Installing pyenv\n"
+
+    local script="https://raw.githubusercontent.com/pyenv/pyenv-installer/master/bin/pyenv-installer"
+    local data_dir=${PYENV_ROOT:-${XDG_DATA_HOME}/pyenv}
+
+    (export PYENV_ROOT="${data_dir}"; curl -L $script | bash)
+    ln -s $XDG_BIN_HOME/ $data_dir/bin/pyenv
+}
+
+function __uninstall_pyenv() {
+    printf "Removing pyenv\n"
+
+    local data_dir=${PYENV_ROOT:-${XDG_DATA_HOME}/pyenv}
+    rm -rf $XDG_BIN_HOME/pyenv $data_dir
+}
+
+function __install_gvm() {
+    local script=$(mktemp)
+    local script_source="https://raw.githubusercontent.com/moovweb/gvm/master/binscripts/gvm-installer"
+    local data_dir="${GVM_DEST:-${XDG_DATA_HOME}}"
+
+    curl -s -S -L $script_source > $script
+    bash $script master $data_dir
+    rm $script
+}
+
+function __install_nvm() {
+    local script=$(mktemp)
+    local script_source="https://raw.githubusercontent.com/nvm-sh/nvm/v0.37.0/install.sh"
+    local data_dir="${NVM_DIR:-${XDG_DATA_HOME}/nvm}"
+
+    curl -s -S -L $script_source > $script
+    mkdir -p ${data_dir}
+    NVM_DIR=${data_dir} bash $script
+    rm $script
+}
