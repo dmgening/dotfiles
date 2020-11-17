@@ -10,13 +10,17 @@ fi
 
 # Setup pyenv
 function () {
-    # Return if requirements are not found.
-    if (( ! $+commands[pyenv] )); then
+    local data_dir=${PYENV_ROOT:-${XDG_DATA_HOME}/pyenv}
+
+    # Return if pyenv not installed
+    if [[ ! -d $data_dir ]]; then
         return 1
     fi
 
+    # Add pyenv to path
+    path=($data_dir/bin ${path[@]})
+
     # Retrieve pyenv configuration and plugins
-    local data_dir=${PYENV_ROOT:-${XDG_DATA_HOME}/pyenv}
     local -a plugins=(${(@oM)${(f)"$(pyenv commands --no-sh 2>/dev/null)"}:#virtualenv*})
     local -a init_plugins=(virtualenv)
 
