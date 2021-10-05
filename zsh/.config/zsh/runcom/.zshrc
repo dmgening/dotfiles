@@ -50,3 +50,7 @@ if [[ -a $ZSH_HOME_DIR/config.sh ]] {
 for conf ("${(f)$(ls $ZSH_CONFIG_HOME/config.d/*(.))}") {
     source $conf
 }
+### End of Zinit's installer chunk
+### End of Zinit's installer chunk
+### End of Zinit's installer chunk
+### End of Zinit's installer chunk

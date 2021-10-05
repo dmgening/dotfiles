@@ -40,7 +40,7 @@ if [[ -z "$DISABLE_SAFEOPS_ALIASES" ]]; then
 fi
 
 # Default options
-alias ls="${aliases[ls]:-ls} --color --human-readable"                  # Colorized outuput
+alias ls="${aliases[ls]:-ls}"                  # Colorized outuput
 alias mkdir="${aliases[mkdir]:-mkdir} -p"                               # Create missing parent folders
 alias df='df -kh'                                                       # Space usage in human readable format by kilobytes.
 alias du='du -kh'                                                       # Same for folder
