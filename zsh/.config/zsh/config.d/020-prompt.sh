@@ -3,19 +3,19 @@
 # conf.d/020-prompt.sh
 #
 
-# Theme
-zplugin ice use"spaceship.zsh"
-zplugin load denysdovhan/spaceship-prompt 
+# Theme - Starship
+# Starship is initialized via eval in .zshrc or a dedicated starship config
+# See: config.d/021-prompt-starship.sh
 
 # Syntax highlight
-zplugin ice wait"0" \
+zinit ice wait"0" \
             atinit"zpcompinit; zpcdreplay"
-zplugin load zdharma/fast-syntax-highlighting
+zinit load zdharma-continuum/fast-syntax-highlighting
 
 # Output colorization
-zplugin ice wait"0"
-zplugin load unixorn/warhol.plugin.zsh
+zinit ice wait"0"
+zinit load unixorn/warhol.plugin.zsh
 
 # Man page colorization
-zplugin ice wait"0"
-zplugin load ael-code/zsh-colored-man-pages
+zinit ice wait"0"
+zinit load ael-code/zsh-colored-man-pages
