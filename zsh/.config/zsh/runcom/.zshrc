@@ -41,9 +41,9 @@ if [[ ! -d $ZINIT[BIN_DIR] ]] {
 # Init zinit
 source $ZINIT[BIN_DIR]/zinit.zsh
 
-# Load local user config
-if [[ -a $ZSH_HOME_DIR/config.sh ]] {
-    source $ZSH_HOME_DIR/config.sh
+# Load local user secrets
+if [[ -a $ZSH_CONFIG_HOME/secrets.sh ]] {
+    source $ZSH_CONFIG_HOME/secrets.sh
 } 
 
 # Load configs from conf.d

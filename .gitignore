@@ -1,2 +1,4 @@
 vim/bundle/*
 !vim/bundle/vundle
+
+zsh/.config/zsh/secrets.sh
