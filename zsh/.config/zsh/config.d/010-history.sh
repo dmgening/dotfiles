@@ -28,6 +28,6 @@ SAVEHIST=50000                     # The maximum number of events to save in the
 # Plugins
 #
 
-zplugin ice wait"1" lucid
-zplugin load zdharma/history-search-multi-word
-zstyle ":history-search-multi-word" page-size "10"
+# Atuin - modern shell history
+# Initialized via eval in a dedicated config file
+# See: config.d/011-history-atuin.sh
