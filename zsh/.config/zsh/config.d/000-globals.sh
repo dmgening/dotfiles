@@ -11,14 +11,3 @@ setopt RC_QUOTES            # Allow 'Henry''s Garage' instead of 'Henry'\''s Gar
 
 unsetopt MAIL_WARNING       # Don't print a warning message if a mail file has been accessed.
 unsetopt BEEP               # Don't beep on zsh errors
-
-# Enable full color on termcap
-zinit light chrissicool/zsh-256color
-
-# Source LS_COLORS
-zinit ice atclone"dircolors -b LS_COLORS > clrs.zsh" \
-            atpull'%atclone' \
-            pick"clrs.zsh" \
-            nocompile'!' \
-            atload'zstyle ":completion:*" list-colors "${(s.:.)LS_COLORS}"'
-zinit light trapd00r/LS_COLORS

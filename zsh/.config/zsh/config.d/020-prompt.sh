@@ -11,11 +11,3 @@
 zinit ice wait"0" \
             atinit"zpcompinit; zpcdreplay"
 zinit load zdharma-continuum/fast-syntax-highlighting
-
-# Output colorization
-zinit ice wait"0"
-zinit load unixorn/warhol.plugin.zsh
-
-# Man page colorization
-zinit ice wait"0"
-zinit load ael-code/zsh-colored-man-pages
