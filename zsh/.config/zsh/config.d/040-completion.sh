@@ -20,15 +20,15 @@ unsetopt MENU_COMPLETE     # Do not autoselect the first completion entry.
 unsetopt FLOW_CONTROL      # Disable start/stop characters in shell editor.
 
 # Inline suggestions
-zplugin ice wait"1b" \
+zinit ice wait"1b" \
             lucid \
             atload"_zsh_autosuggest_start" \
             wrap-track"_zsh_autosuggest_start" \
-zplugin load zsh-users/zsh-autosuggestions
+zinit load zsh-users/zsh-autosuggestions
 
 # Extra completions
-zplugin ice blockf
-zplugin load zsh-users/zsh-completions
+zinit ice blockf
+zinit load zsh-users/zsh-completions
 
 # Add externals zsh-completions to $fpath.
 if [[ -d "$comp_extension" ]]; then

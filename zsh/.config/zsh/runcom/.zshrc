@@ -15,31 +15,31 @@ typeset -gU cdpath fpath mailpath path
 cdpath=($HOME $cdpath)
 
 # Set the list of directories that Zsh searches for programs.
-path=($XDG_BIN_HOME /usr/local/{bin,sbin} $path)
+path=($XDG_BIN_HOME /opt/homebrew/{bin,sbin} /usr/local/{bin,sbin} $path)
 fpath=($ZSH_CONFIG_HOME/functions ${fpath[@]})
 
-# Set zplugin locations and settings
-declare -A ZPLGM
-ZPLGM[BIN_DIR]="$XDG_DATA_HOME/zplugin/bin"
-ZPLGM[HOME_DIR]="$XDG_DATA_HOME/zplugin"
-ZPLGM[PLUGINS_DIR]="$ZSH_CONFIG_HOME/plugins"
-# ZPLGM[COMPLETIONS_DIR]=
-# ZPLGM[SNIPPETS_DIR]=
-ZPLGM[ZCOMPDUMP_PATH]="$ZSH_CACHE_HOME/zcompdump"
-# ZPLGM[COMPINIT_OPTS]=
-# ZPLGM[MUTE_WARNINGS]=
+# Set zinit locations and settings
+declare -A ZINIT
+ZINIT[BIN_DIR]="$XDG_DATA_HOME/zinit/bin"
+ZINIT[HOME_DIR]="$XDG_DATA_HOME/zinit"
+ZINIT[PLUGINS_DIR]="$ZSH_CONFIG_HOME/plugins"
+# ZINIT[COMPLETIONS_DIR]=
+# ZINIT[SNIPPETS_DIR]=
+ZINIT[ZCOMPDUMP_PATH]="$ZSH_CACHE_HOME/zcompdump"
+# ZINIT[COMPINIT_OPTS]=
+# ZINIT[MUTE_WARNINGS]=
 
-# Check if zplugin installed or install it from github
-if [[ ! -d $ZPLGM[BIN_DIR] ]] {
+# Check if zinit installed or install it from github
+if [[ ! -d $ZINIT[BIN_DIR] ]] {
     (
-        export ZPLG_INSTALL_URL="https://raw.githubusercontent.com/zdharma/zplugin/master/doc/install.sh";
-        export ZPLG_HOME=$ZPLGM[HOME_DIR];
-        curl -fsSL $ZPLG_INSTALL_URL | zsh 
+        export ZINIT_HOME=$ZINIT[HOME_DIR];
+        mkdir -p "$(dirname $ZINIT[BIN_DIR])"
+        git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT[BIN_DIR]"
     )
 }
 
-# Init zplugin
-source $ZPLGM[BIN_DIR]/zplugin.zsh
+# Init zinit
+source $ZINIT[BIN_DIR]/zinit.zsh
 
 # Load local user config
 if [[ -a $ZSH_HOME_DIR/config.sh ]] {
