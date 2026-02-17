@@ -32,7 +32,6 @@ return {
     dependencies = { "williamboman/mason-lspconfig.nvim" },
     event = { "BufReadPost", "BufNewFile" },
     config = function()
-      local lspconfig = require("lspconfig")
       vim.opt.completeopt = { "menu", "menuone", "noselect" }
 
       -- LspAttach: buffer-local keymaps + native completion
@@ -60,13 +59,7 @@ return {
         end,
       })
 
-      -- Server setup
-      lspconfig.pyright.setup({})
-      lspconfig.gopls.setup({})
-      lspconfig.ts_ls.setup({})
-      lspconfig.bashls.setup({})
-      lspconfig.dockerls.setup({})
-      lspconfig.lua_ls.setup({
+      vim.lsp.config("lua_ls", {
         settings = {
           Lua = {
             diagnostics = { globals = { "vim" } },
@@ -77,6 +70,8 @@ return {
           },
         },
       })
+
+      vim.lsp.enable({ "pyright", "gopls", "ts_ls", "bashls", "dockerls", "lua_ls" })
     end,
   },
 
