@@ -1,16 +1,13 @@
-.PHONY: emacs osx vim zsh 
+.PHONY: all emacs osx vim zsh kitty
 all: emacs osx vim zsh
 
+osx vim kitty:
+	stow -t ~ $@
+
 emacs:
-	make -C emacs/.emacs.d
-	stow -t ~ emacs
+	$(MAKE) -C emacs/.emacs.d
+	stow -t ~ $@
 
-osx:
-	stow -t ~ osx 
-
-vim:
-	stow -t ~ vim
-
-zsh: 
+zsh:
 	git submodule update --init --recursive
-	stow -t ~ zsh
+	stow -t ~ $@
