@@ -17,6 +17,7 @@ map("n", "<C-l>", "<C-w>l", { silent = true })
 
 -- Show/hide hidden chars (carried from old vim config)
 map("n", "<leader>eh", ":set list!<CR>", { silent = true })
+vim.opt.listchars = { tab = "→ ", eol = "↵", trail = "·", extends = "↷", precedes = "↶" }
 
 -- Diagnostics
 map("n", "[d", vim.diagnostic.goto_prev, { desc = "Previous diagnostic" })
