@@ -1,7 +1,7 @@
-.PHONY: all emacs osx vim zsh kitty
+.PHONY: all emacs osx vim zsh kitty nvim
 all: emacs osx vim zsh
 
-osx vim kitty:
+osx vim kitty nvim:
 	stow -t ~ $@
 
 emacs:
