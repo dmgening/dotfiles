@@ -45,6 +45,23 @@ return {
     },
   },
 
+  -- File tree sidebar
+  {
+    "nvim-tree/nvim-tree.lua",
+    dependencies = { "nvim-tree/nvim-web-devicons" },
+    keys = {
+      { "<leader>t", "<cmd>NvimTreeToggle<cr>", desc = "Tree toggle" },
+    },
+    opts = {
+      filters = { dotfiles = false },
+      git = { enable = true, ignore = false },
+      renderer = {
+        highlight_git = true,
+        icons = { show = { git = true } },
+      },
+    },
+  },
+
   -- Comments (gcc / gc)
   {
     "numToStr/Comment.nvim",

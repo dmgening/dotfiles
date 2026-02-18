@@ -1,4 +1,22 @@
 return {
+  -- Key binding hints popup
+  {
+    "folke/which-key.nvim",
+    event = "VeryLazy",
+    opts = {
+      delay = 500,
+    },
+    config = function(_, opts)
+      local wk = require("which-key")
+      wk.setup(opts)
+      wk.add({
+        { "<leader>f", group = "Find" },
+        { "<leader>h", group = "Hunk" },
+        { "<leader>e", group = "Edit/Explore" },
+      })
+    end,
+  },
+
   -- Catppuccin colorscheme with auto dark/light detection
   {
     "catppuccin/nvim",
