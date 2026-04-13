@@ -23,6 +23,8 @@ zstyle ':fzf-tab:*' continuous-trigger '/'
 zstyle ':fzf-tab:*' fzf-bindings 'space:accept'
 zstyle ':fzf-tab:*' accept-line enter
 
+# Use tmux popup for fzf-tab, with explicit size
 [[ -n $TMUX ]] && zstyle ':fzf-tab:*' fzf-command ftb-tmux-popup
+[[ -n $TMUX ]] && zstyle ':fzf-tab:*' popup-min-size 80 20
 
 zstyle ':fzf-tab:*' prefix ''
