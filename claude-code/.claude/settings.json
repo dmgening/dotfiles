@@ -1,0 +1,57 @@
+{
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  },
+  "permissions": {
+    "allow": [
+      "Bash(*)"
+    ],
+    "deny": [
+      "Bash(rm -rf /*)",
+      "Bash(sudo rm*)",
+      "Bash(mkfs*)",
+      "Bash(dd if=*)",
+      "Bash(chmod -R 777*)",
+      "Bash(curl * | bash)",
+      "Bash(wget * | bash)",
+      "Bash(> /etc/*)",
+      "Bash(shutdown*)",
+      "Bash(reboot*)"
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "~/.claude/ccline/ccline",
+    "padding": 0
+  },
+  "enabledPlugins": {
+    "gopls-lsp@claude-plugins-official": true,
+    "superpowers@claude-plugins-official": true,
+    "voltagent-biz@voltagent-subagents": true,
+    "voltagent-core-dev@voltagent-subagents": true,
+    "voltagent-data-ai@voltagent-subagents": true,
+    "voltagent-dev-exp@voltagent-subagents": true,
+    "voltagent-domains@voltagent-subagents": true,
+    "voltagent-infra@voltagent-subagents": true,
+    "voltagent-lang@voltagent-subagents": true,
+    "voltagent-meta@voltagent-subagents": true,
+    "voltagent-qa-sec@voltagent-subagents": true,
+    "voltagent-research@voltagent-subagents": true
+  },
+  "extraKnownMarketplaces": {
+    "superpowers-marketplace": {
+      "source": {
+        "source": "github",
+        "repo": "obra/superpowers-marketplace"
+      }
+    },
+    "voltagent-subagents": {
+      "source": {
+        "source": "github",
+        "repo": "VoltAgent/awesome-claude-code-subagents"
+      }
+    }
+  },
+  "skipDangerousModePermissionPrompt": true,
+  "model": "Opus"
+}

@@ -1,7 +1,7 @@
-.PHONY: all osx zsh kitty nvim tmux
-all: zsh nvim kitty tmux
+.PHONY: all osx zsh kitty nvim tmux claude-code
+all: zsh nvim kitty tmux claude-code
 
-osx kitty nvim tmux:
+osx kitty nvim tmux claude-code:
 	stow -t ~ $@
 
 zsh:
