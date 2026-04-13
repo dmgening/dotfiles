@@ -1,11 +1,7 @@
-.PHONY: all emacs osx vim zsh kitty nvim tx
-all: emacs osx vim zsh tmux
+.PHONY: all osx zsh kitty nvim tmux
+all: zsh nvim kitty tmux
 
-osx vim kitty nvim tmux:
-	stow -t ~ $@
-
-emacs:
-	$(MAKE) -C emacs/.emacs.d
+osx kitty nvim tmux:
 	stow -t ~ $@
 
 zsh:
