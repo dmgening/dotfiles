@@ -49,22 +49,22 @@ fi
 
 if [ ${#TO_INSTALL[@]} -eq 0 ]; then
     echo "All tools are already installed!"
-    exit 0
+else
+    echo "Installing missing tools:"
+    for tool in "${TO_INSTALL[@]}"; do
+        echo "  → $tool"
+    done
+    echo
+
+    brew install "${TO_INSTALL[@]}"
+
+    echo
+    echo "✓ Brew installation complete!"
 fi
 
-echo "Installing missing tools:"
-for tool in "${TO_INSTALL[@]}"; do
-    echo "  → $tool"
-done
-echo
-
-brew install "${TO_INSTALL[@]}"
-
-echo
-echo "✓ Installation complete!"
 echo
 # Install TPM (tmux plugin manager)
-TPM_DIR="$HOME/.tmux/plugins/tpm"
+TPM_DIR="$HOME/.config/tmux/plugins/tpm"
 if [ ! -d "$TPM_DIR" ]; then
     echo "Installing TPM (tmux plugin manager)..."
     git clone https://github.com/tmux-plugins/tpm "$TPM_DIR"
