@@ -2,3 +2,5 @@ vim/bundle/*
 !vim/bundle/vundle
 
 zsh/.config/zsh/secrets.sh
+zsh/.config/zsh/runcom/.zsh_sessions/
+
