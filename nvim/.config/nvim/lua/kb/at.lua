@@ -277,24 +277,19 @@ function M.backlinks_link()
     notify("no backlinks for " .. target_abs)
     return true
   end
-  -- Surface in fzf-lua quickfix-style picker.
-  local items = {}
+  -- Push results into a quickfix list and surface via fzf-lua's quickfix picker
+  -- so we get its built-in file preview.
+  local qfitems = {}
   for _, r in ipairs(results) do
-    table.insert(items, string.format("%s:%d: %s", r.file, r.lnum, r.text))
+    table.insert(qfitems, {
+      filename = r.file,
+      lnum = r.lnum,
+      col = 1,
+      text = r.text,
+    })
   end
-  require("fzf-lua").fzf_exec(items, {
-    prompt = "Backlinks> ",
-    actions = {
-      ["default"] = function(selected)
-        if not selected[1] then return end
-        local file, lnum = selected[1]:match("^([^:]+):(%d+):")
-        if file then
-          vim.cmd("edit " .. vim.fn.fnameescape(file))
-          if lnum then vim.api.nvim_win_set_cursor(0, { tonumber(lnum), 0 }) end
-        end
-      end,
-    },
-  })
+  vim.fn.setqflist({}, " ", { items = qfitems, title = "Backlinks: " .. target_abs })
+  require("fzf-lua").quickfix({ prompt = "Backlinks> " })
   return true
 end
 
