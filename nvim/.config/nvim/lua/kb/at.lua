@@ -172,8 +172,7 @@ end
 function M.backlinks()
   local line = vim.api.nvim_get_current_line()
   local col = vim.api.nvim_win_get_cursor(0)[2] + 1
-  -- Try #tag first (more specific — tags can appear inside text that also
-  -- happens to look like an @-mention prefix).
+
   local tag = M.parse_tag(line, col)
   if tag then
     require("fzf-lua").grep({
@@ -183,16 +182,23 @@ function M.backlinks()
     })
     return
   end
+
   local mention = M.parse(line, col)
-  if not mention then
-    notify("no @-mention or #tag under cursor")
+  if mention then
+    require("fzf-lua").grep({
+      cwd = config.vault(),
+      search = mention.raw,
+      no_esc = true,
+    })
     return
   end
-  require("fzf-lua").grep({
-    cwd = config.vault(),
-    search = mention.raw,
-    no_esc = true,
-  })
+
+  if M.parse_link(line, col) then
+    M.backlinks_link()
+    return
+  end
+
+  notify("no link/mention/tag under cursor")
 end
 
 -- Run a shell command and return stdout as a list of lines.
@@ -252,6 +258,44 @@ function M.backlinks_for_target(target_abs)
     end
   end
   return results
+end
+
+-- Cursor on a [text](path) link: resolve the target and find all backlinks.
+function M.backlinks_link()
+  local line = vim.api.nvim_get_current_line()
+  local col = vim.api.nvim_win_get_cursor(0)[2] + 1
+  local link = M.parse_link(line, col)
+  if not link then return false end
+  if link.path:match("^https?://") or link.path:match("^mailto:") then
+    notify("backlinks not supported for URL targets", vim.log.levels.INFO)
+    return true
+  end
+  local current = vim.api.nvim_buf_get_name(0)
+  local target_abs, _ = M.resolve_link(link, current)
+  local results = M.backlinks_for_target(target_abs)
+  if #results == 0 then
+    notify("no backlinks for " .. target_abs)
+    return true
+  end
+  -- Surface in fzf-lua quickfix-style picker.
+  local items = {}
+  for _, r in ipairs(results) do
+    table.insert(items, string.format("%s:%d: %s", r.file, r.lnum, r.text))
+  end
+  require("fzf-lua").fzf_exec(items, {
+    prompt = "Backlinks> ",
+    actions = {
+      ["default"] = function(selected)
+        if not selected[1] then return end
+        local file, lnum = selected[1]:match("^([^:]+):(%d+):")
+        if file then
+          vim.cmd("edit " .. vim.fn.fnameescape(file))
+          if lnum then vim.api.nvim_win_set_cursor(0, { tonumber(lnum), 0 }) end
+        end
+      end,
+    },
+  })
+  return true
 end
 
 return M

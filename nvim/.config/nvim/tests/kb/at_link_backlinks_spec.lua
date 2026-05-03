@@ -43,3 +43,40 @@ describe("kb.at.backlinks_for_target", function()
     assert.are.same({}, results)
   end)
 end)
+
+describe("kb.at.backlinks_link (dispatcher)", function()
+  it("notifies for URL targets and does not search vault", function()
+    local vault = fresh_vault()
+    write(vault .. "/x.md", "[doc](https://example.com)")
+    vim.cmd("edit " .. vim.fn.fnameescape(vault .. "/x.md"))
+    vim.api.nvim_win_set_cursor(0, { 1, 7 })  -- inside the URL parens
+    local notified = false
+    local orig = vim.notify
+    vim.notify = function(msg, _) if msg:match("URL") then notified = true end end
+    require("kb.at").backlinks_link()
+    vim.notify = orig
+    assert.is_true(notified)
+  end)
+end)
+
+describe("kb.at.backlinks dispatcher", function()
+  it("dispatches to backlinks_link when cursor is on a markdown link", function()
+    local vault = fresh_vault()
+    write(vault .. "/target.md", "")
+    write(vault .. "/source.md", "ref: [t](/target.md)")
+    vim.cmd("edit " .. vim.fn.fnameescape(vault .. "/source.md"))
+    -- Cursor on '/target.md' inside the parens.
+    vim.api.nvim_win_set_cursor(0, { 1, 12 })
+    -- Stub fzf-lua so we don't open a real picker.
+    package.loaded["fzf-lua"] = { fzf_exec = function(_, _) end }
+    local at = require("kb.at")
+    -- Capture which branch ran: monkey-patch backlinks_for_target to set a flag.
+    local called_with
+    local orig_bft = at.backlinks_for_target
+    at.backlinks_for_target = function(p) called_with = p; return {} end
+    at.backlinks()
+    at.backlinks_for_target = orig_bft
+    assert.is_not_nil(called_with)
+    assert.is_true(called_with:match("target%.md$") ~= nil)
+  end)
+end)
