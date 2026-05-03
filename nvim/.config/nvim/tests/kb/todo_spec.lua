@@ -188,7 +188,7 @@ describe("kb.todo helpers", function()
     assert.is_true(in_done)
   end)
 
-  it("cycle_state walks [ ] -> [/] -> [x] -> [-] -> [>] -> [?] -> [ ]", function()
+  it("cycle_state walks [ ] -> [/] -> [>] -> [?] -> [ ] (skips archive states)", function()
     local vault = fresh_vault()
     vim.fn.writefile({
       "# TODO", "", "## Active", "- [ ] one", "",
@@ -198,20 +198,69 @@ describe("kb.todo helpers", function()
     }, vault .. "/todo.md")
     vim.cmd("edit " .. vault .. "/todo.md")
     local todo = require("kb.todo")
-    todo.cycle_state(0, 4)
-    assert.are.equal("- [/] one", vim.api.nvim_buf_get_lines(0, 3, 4, false)[1])
-    todo.cycle_state(0, 4)
-    -- Now [x] would archive, so the line at 4 may be a section header.
-    -- For this assertion, just verify the state advanced — find the line again.
+    local function state_at(ln) return vim.api.nvim_buf_get_lines(0, ln - 1, ln, false)[1] end
+    todo.cycle_state(0, 4); assert.are.equal("- [/] one", state_at(4))
+    todo.cycle_state(0, 4); assert.are.equal("- [>] one", state_at(4))
+    todo.cycle_state(0, 4); assert.are.equal("- [?] one", state_at(4))
+    todo.cycle_state(0, 4); assert.are.equal("- [ ] one", state_at(4))
+    -- Task should still be in ## Active throughout (no archiving)
     local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
-    local found_x = false
-    for _, l in ipairs(lines) do
-      if l == "- [x] one" then found_x = true end
-    end
-    assert.is_true(found_x)
+    assert.are.equal("## Active", lines[3])
+    assert.is_truthy(lines[4]:find("one", 1, true))
   end)
 
-  it("cycle_state archives on [-] (cancelled)", function()
+  it("cycle_state from [x] in Done un-archives back to ## Active as next non-archive state", function()
+    local vault = fresh_vault()
+    vim.fn.writefile({
+      "# TODO", "", "## Active", "",
+      "## Waiting", "",
+      "## Someday", "",
+      "## Done", "- [x] one", "",
+    }, vault .. "/todo.md")
+    vim.cmd("edit " .. vault .. "/todo.md")
+    local todo = require("kb.todo")
+    -- File: 1=# TODO 2='' 3=## Active 4='' 5=## Waiting 6='' 7=## Someday
+    -- 8='' 9=## Done 10='- [x] one' 11=''
+    todo.cycle_state(0, 10)
+    local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+    local section, in_active = nil, false
+    for _, l in ipairs(lines) do
+      if l:match("^## ") then section = l end
+      if section == "## Active" and l == "- [ ] one" then in_active = true end
+    end
+    assert.is_true(in_active)
+  end)
+
+  it("toggle_state cycles [ ] -> [x] -> [-] -> [ ]", function()
+    local vault = fresh_vault()
+    vim.fn.writefile({
+      "# TODO", "", "## Active", "- [ ] one", "",
+      "## Waiting", "",
+      "## Someday", "",
+      "## Done", "",
+    }, vault .. "/todo.md")
+    vim.cmd("edit " .. vault .. "/todo.md")
+    local todo = require("kb.todo")
+    -- [ ] -> [x], moves to ## Done
+    local new_ln = todo.toggle_state(0, 4)
+    assert.is_not_nil(new_ln)
+    assert.are.equal("- [x] one", vim.api.nvim_buf_get_lines(0, new_ln - 1, new_ln, false)[1])
+    -- [x] -> [-], stays in ## Done
+    new_ln = todo.toggle_state(0, new_ln)
+    assert.are.equal("- [-] one", vim.api.nvim_buf_get_lines(0, new_ln - 1, new_ln, false)[1])
+    -- [-] -> [ ], un-archives back to ## Active
+    new_ln = todo.toggle_state(0, new_ln)
+    assert.are.equal("- [ ] one", vim.api.nvim_buf_get_lines(0, new_ln - 1, new_ln, false)[1])
+    local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+    local section, in_active = nil, false
+    for _, l in ipairs(lines) do
+      if l:match("^## ") then section = l end
+      if section == "## Active" and l == "- [ ] one" then in_active = true end
+    end
+    assert.is_true(in_active)
+  end)
+
+  it("toggle_state archives on [-] (cancelled) too", function()
     local vault = fresh_vault()
     vim.fn.writefile({
       "# TODO", "", "## Active", "- [x] one", "",
@@ -221,15 +270,46 @@ describe("kb.todo helpers", function()
     }, vault .. "/todo.md")
     vim.cmd("edit " .. vault .. "/todo.md")
     local todo = require("kb.todo")
-    -- One cycle from [x] should land on [-] and archive (already in Active so this moves it to Done)
-    todo.cycle_state(0, 4)
+    -- [x] -> [-], should land in ## Done (already archived but state changes)
+    local new_ln = todo.toggle_state(0, 4)
     local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
-    local in_done = false
-    local section = nil
+    local section, in_done = nil, false
     for _, l in ipairs(lines) do
       if l:match("^## ") then section = l end
       if section == "## Done" and l == "- [-] one" then in_done = true end
     end
     assert.is_true(in_done)
+  end)
+
+  it("move_task is a no-op (preserves lnum) when task is already in target section", function()
+    local vault = fresh_vault()
+    vim.fn.writefile({
+      "# TODO", "", "## Active", "- [ ] one", "- [ ] two", "",
+      "## Waiting", "",
+      "## Someday", "",
+      "## Done", "",
+    }, vault .. "/todo.md")
+    vim.cmd("edit " .. vault .. "/todo.md")
+    local todo = require("kb.todo")
+    local before = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+    local result = todo.move_task(0, 4, "Active")
+    assert.are.equal(4, result)
+    local after = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+    assert.are.same(before, after)
+  end)
+
+  it("move_task returns the new lnum so callers can follow the cursor", function()
+    local vault = fresh_vault()
+    vim.fn.writefile({
+      "# TODO", "", "## Active", "- [ ] one", "",
+      "## Waiting", "",
+      "## Someday", "",
+      "## Done", "",
+    }, vault .. "/todo.md")
+    vim.cmd("edit " .. vault .. "/todo.md")
+    local todo = require("kb.todo")
+    local new_ln = todo.move_task(0, 4, "Done")
+    assert.is_not_nil(new_ln)
+    assert.are.equal("- [ ] one", vim.api.nvim_buf_get_lines(0, new_ln - 1, new_ln, false)[1])
   end)
 end)

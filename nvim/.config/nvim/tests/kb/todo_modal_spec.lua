@@ -73,6 +73,54 @@ describe("kb.todo_modal", function()
     end
     assert.is_true(in_waiting)
   end)
+
+  it("'w' on a task already in ## Waiting is a no-op (does not bounce to bottom)", function()
+    local _, buf = open_todo_with({
+      "# TODO", "", "## Active", "",
+      "## Waiting", "- [ ] one", "- [ ] two", "",
+      "## Someday", "", "## Done", "",
+    })
+    require("kb.todo_modal").attach(buf)
+    -- '- [ ] one' is at line 6 (after ## Waiting at line 5)
+    vim.api.nvim_win_set_cursor(0, { 6, 0 })
+    local before = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+    vim.cmd("normal w")
+    local after = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+    assert.are.same(before, after)
+  end)
+
+  it("'a' on a [x] task in ## Done resets state to [ ] and moves to ## Active", function()
+    local _, buf = open_todo_with({
+      "# TODO", "", "## Active", "",
+      "## Waiting", "", "## Someday", "",
+      "## Done", "- [x] one", "",
+    })
+    require("kb.todo_modal").attach(buf)
+    -- File: 1=# TODO 2='' 3=## Active 4='' 5=## Waiting 6='' 7=## Someday
+    -- 8='' 9=## Done 10='- [x] one' 11=''
+    vim.api.nvim_win_set_cursor(0, { 10, 0 })
+    vim.cmd("normal a")
+    local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+    local section, in_active = nil, false
+    for _, l in ipairs(lines) do
+      if l:match("^## ") then section = l end
+      if section == "## Active" and l == "- [ ] one" then in_active = true end
+    end
+    assert.is_true(in_active)
+  end)
+
+  it("cursor follows the task when 'X' archives it to ## Done", function()
+    local _, buf = open_todo_with({
+      "# TODO", "", "## Active", "- [ ] one", "- [ ] two", "",
+      "## Waiting", "", "## Someday", "", "## Done", "",
+    })
+    require("kb.todo_modal").attach(buf)
+    vim.api.nvim_win_set_cursor(0, { 4, 0 })  -- on '- [ ] one'
+    vim.cmd("normal X")
+    local cursor_lnum = vim.api.nvim_win_get_cursor(0)[1]
+    local line_at_cursor = vim.api.nvim_buf_get_lines(buf, cursor_lnum - 1, cursor_lnum, false)[1]
+    assert.are.equal("- [x] one", line_at_cursor)
+  end)
 end)
 
 describe("kb.todo_modal — escape hatch and help", function()

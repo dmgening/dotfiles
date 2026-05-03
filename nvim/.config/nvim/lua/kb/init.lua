@@ -76,11 +76,16 @@ local function define_autocmds()
   })
 
   -- Save-time refresh of the entity + tag index.
+  -- Match all *.md and check vault membership in the callback (more robust
+  -- than vault-rooted glob, which can fail when args.file is a tilde path
+  -- or differs from the vault by a normalization).
   vim.api.nvim_create_autocmd("BufWritePost", {
     group = group,
-    pattern = config.vault() .. "/**/*.md",
+    pattern = "*.md",
     callback = function(args)
-      require("kb.index").refresh_file(args.file)
+      local abs = vim.fn.fnamemodify(args.file, ":p")
+      if not vim.startswith(abs, config.vault() .. "/") then return end
+      require("kb.index").refresh_file(abs)
     end,
   })
 

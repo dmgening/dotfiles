@@ -142,9 +142,14 @@ function Source:_subfile_insert(target_abs, title, current_buf_abs)
   return "[" .. link_text .. "](" .. rooted .. ")"
 end
 
+-- isIncomplete=true so cmp re-asks the source as the user keeps typing after
+-- the trigger character. This keeps the menu live with the latest cache
+-- contents — e.g. a tag that was just added to another file and saved (which
+-- triggers BufWritePost -> index.refresh_file) shows up on the next trigger
+-- without a restart.
 function Source:complete(params, callback)
   local trigger = params.context and params.context.trigger_character or nil
-  callback({ items = self:_collect_items(trigger), isIncomplete = false })
+  callback({ items = self:_collect_items(trigger), isIncomplete = true })
 end
 
 -- Register in setup hook

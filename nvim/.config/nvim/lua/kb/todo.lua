@@ -127,10 +127,19 @@ function M.open()
   vim.cmd("edit " .. vim.fn.fnameescape(M.path()))
 end
 
-local STATE_CYCLE = { " ", "/", "x", "-", ">", "?" }
+-- Non-archive states cycled by `x`. `[x]` (done) and `[-]` (cancelled) are
+-- intentionally excluded so cycling never auto-archives — they're reachable
+-- only via `X` (toggle_state).
+local CYCLE_STATES = { " ", "/", ">", "?" }
 
-local function state_index(ch)
-  for i, s in ipairs(STATE_CYCLE) do
+-- Three-way ring used by `X`: empty -> done -> cancelled -> empty. Both `[x]`
+-- and `[-]` archive to `## Done`; transitioning back to `[ ]` un-archives.
+local TOGGLE_STATES = { " ", "x", "-" }
+
+local ARCHIVE_STATES = { x = true, ["-"] = true }
+
+local function index_of(list, ch)
+  for i, s in ipairs(list) do
     if s == ch then return i end
   end
   return nil
@@ -160,20 +169,35 @@ local function find_section_bounds(lines, name)
   return start, stop
 end
 
+local function section_at(lines, lnum)
+  for i = lnum, 1, -1 do
+    local h = lines[i] and lines[i]:match("^## (.+)$")
+    if h then return h end
+  end
+  return nil
+end
+
+-- Move the task at `lnum` to the named section. Returns the new lnum on
+-- success, or nil if the line wasn't a task or the section doesn't exist.
+-- If the task is already at the bottom of the target section, it's a no-op
+-- and the original lnum is returned unchanged.
 function M.move_task(bufnr, lnum, target_section)
   local lines = get_lines(bufnr)
   local task = lines[lnum]
   if not task or not task:match("^%- %[.%] ") then
     vim.notify("[kb] not a task line", vim.log.levels.WARN)
-    return
+    return nil
+  end
+  if section_at(lines, lnum) == target_section then
+    return lnum  -- no-op: same section
   end
   table.remove(lines, lnum)
   local _, stop = find_section_bounds(lines, target_section)
   if not stop then
     vim.notify("[kb] section ## " .. target_section .. " not found", vim.log.levels.WARN)
-    return
+    return nil
   end
-  -- Insert just before the trailing blank line that precedes the next section header
+  -- Insert just before the trailing blank line(s) that precede the next section.
   local insert_at = stop - 1
   while insert_at >= 1 and lines[insert_at] == "" do
     insert_at = insert_at - 1
@@ -181,42 +205,61 @@ function M.move_task(bufnr, lnum, target_section)
   insert_at = insert_at + 1
   table.insert(lines, insert_at, task)
   set_lines(bufnr, lines)
+  return insert_at
 end
 
+-- Three-way toggle for `X`: [ ] -> [x] -> [-] -> [ ]. Archive states route
+-- the task to `## Done`; transitioning back to `[ ]` while in Done un-archives
+-- to `## Active`. Returns the new lnum (which may differ from `lnum` if the
+-- task moved).
 function M.toggle_state(bufnr, lnum)
   local lines = get_lines(bufnr)
   local task = lines[lnum]
-  if not task then return end
+  if not task then return nil end
   local prefix, state, rest = task:match("^(%- %[)(.)(%].*)$")
   if not prefix then
     vim.notify("[kb] not a task line", vim.log.levels.WARN)
-    return
+    return nil
   end
-  local new_state = state == "x" and " " or "x"
+  local idx = index_of(TOGGLE_STATES, state) or 1
+  local new_state = TOGGLE_STATES[(idx % #TOGGLE_STATES) + 1]
   lines[lnum] = prefix .. new_state .. rest
+  local was_in_done = section_at(lines, lnum) == "Done"
   set_lines(bufnr, lines)
-  if new_state == "x" then
-    M.move_task(bufnr, lnum, "Done")
+  if ARCHIVE_STATES[new_state] then
+    return M.move_task(bufnr, lnum, "Done") or lnum
+  elseif was_in_done then
+    return M.move_task(bufnr, lnum, "Active") or lnum
   end
+  return lnum
 end
 
+-- Cycle through non-archive states only. If the task is currently in an
+-- archive state (e.g. user is in `## Done`), wrap to the first non-archive
+-- state, which causes the task to un-archive back to `## Active`.
 function M.cycle_state(bufnr, lnum)
   local lines = get_lines(bufnr)
   local task = lines[lnum]
-  if not task then return end
+  if not task then return nil end
   local prefix, state, rest = task:match("^(%- %[)(.)(%].*)$")
   if not prefix then
     vim.notify("[kb] not a task line", vim.log.levels.WARN)
-    return
+    return nil
   end
-  local idx = state_index(state) or 1
-  local next_idx = (idx % #STATE_CYCLE) + 1
-  local new_state = STATE_CYCLE[next_idx]
+  local idx = index_of(CYCLE_STATES, state)
+  local new_state
+  if idx then
+    new_state = CYCLE_STATES[(idx % #CYCLE_STATES) + 1]
+  else
+    new_state = CYCLE_STATES[1]  -- archive state -> back to fresh
+  end
   lines[lnum] = prefix .. new_state .. rest
+  local was_in_done = section_at(lines, lnum) == "Done"
   set_lines(bufnr, lines)
-  if new_state == "x" or new_state == "-" then
-    M.move_task(bufnr, lnum, "Done")
+  if was_in_done then
+    return M.move_task(bufnr, lnum, "Active") or lnum
   end
+  return lnum
 end
 
 return M

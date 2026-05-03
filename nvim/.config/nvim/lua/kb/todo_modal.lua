@@ -31,9 +31,43 @@ local function current_lnum()
   return vim.api.nvim_win_get_cursor(0)[1]
 end
 
+local function set_cursor(lnum)
+  if not lnum then return end
+  local last = vim.api.nvim_buf_line_count(0)
+  if lnum > last then lnum = last end
+  if lnum < 1 then lnum = 1 end
+  vim.api.nvim_win_set_cursor(0, { lnum, 0 })
+end
+
+local function current_section()
+  local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+  for i = current_lnum(), 1, -1 do
+    local h = lines[i] and lines[i]:match("^## (.+)$")
+    if h then return h end
+  end
+  return nil
+end
+
+-- Move task at cursor to `section`. If the task is in `## Done` and the
+-- target is `## Active`, also reset state to `[ ]` (un-archive). If the task
+-- is already in the target section, do nothing (avoids the "press w on a
+-- Waiting task and watch it bounce to the bottom" UX bug).
 local function move_to(bufnr, section)
+  if current_section() == section then
+    return  -- noop: already in target
+  end
   with_unlock(bufnr, function()
-    todo.move_task(bufnr, current_lnum(), section)
+    local ln = current_lnum()
+    if section == "Active" then
+      -- Un-archive: reset state if currently [x] or [-]
+      local line = vim.api.nvim_buf_get_lines(bufnr, ln - 1, ln, false)[1] or ""
+      local prefix, state, rest = line:match("^(%- %[)(.)(%].*)$")
+      if prefix and (state == "x" or state == "-") then
+        vim.api.nvim_buf_set_lines(bufnr, ln - 1, ln, false, { prefix .. " " .. rest })
+      end
+    end
+    local new_lnum = todo.move_task(bufnr, ln, section)
+    set_cursor(new_lnum)
   end)
 end
 
@@ -42,8 +76,16 @@ function M.attach(bufnr)
   vim.bo[bufnr].modifiable = false
   vim.wo.winbar = WINBAR
 
-  map(bufnr, "x", function() with_unlock(bufnr, function() todo.cycle_state(bufnr, current_lnum()) end) end, "kb-todo: cycle state")
-  map(bufnr, "X", function() with_unlock(bufnr, function() todo.toggle_state(bufnr, current_lnum()) end) end, "kb-todo: toggle done")
+  map(bufnr, "x", function()
+    with_unlock(bufnr, function()
+      set_cursor(todo.cycle_state(bufnr, current_lnum()))
+    end)
+  end, "kb-todo: cycle state (skips archive)")
+  map(bufnr, "X", function()
+    with_unlock(bufnr, function()
+      set_cursor(todo.toggle_state(bufnr, current_lnum()))
+    end)
+  end, "kb-todo: toggle [ ] / [x] / [-]")
   map(bufnr, "w", function() move_to(bufnr, "Waiting") end, "kb-todo: -> Waiting")
   map(bufnr, "s", function() move_to(bufnr, "Someday") end, "kb-todo: -> Someday")
   map(bufnr, "a", function() move_to(bufnr, "Active") end, "kb-todo: -> Active")
@@ -146,21 +188,21 @@ function M.help()
   local lines = {
     " kb-todo modal keys ",
     "",
-    "  x   cycle state  [ ] -> [/] -> [x] -> [-] -> [>] -> [?] -> [ ]",
-    "  X   toggle done  ([ ] <-> [x]; archive on [x])",
-    "  w   move task to ## Waiting",
-    "  s   move task to ## Someday",
-    "  a   move task to ## Active",
+    "  x   cycle state  [ ] -> [/] -> [>] -> [?] -> [ ]   (skips archive)",
+    "  X   toggle       [ ] -> [x] -> [-] -> [ ]          (archives on [x]/[-])",
+    "  w   move task to ## Waiting   (no-op if already there)",
+    "  s   move task to ## Someday   (no-op if already there)",
+    "  a   move task to ## Active    (resets [x]/[-] -> [ ])",
     "  dd  delete task line",
     "  i   amend task under cursor (re-locks on <Esc>)",
     "  e   amend task under cursor (alias of i)",
-    "  o   new task below current section",
-    "  O   new task above current section",
+    "  o   new task at end of current section",
+    "  O   new task at start of current section",
     "  I   unlock buffer for free editing (no auto-relock this session)",
     "  q   close buffer",
     "  ?   this help",
     "",
-    "  press any key to close",
+    "  press <Esc>, q, or ? to close",
   }
   local width = 0
   for _, l in ipairs(lines) do if #l > width then width = #l end end
