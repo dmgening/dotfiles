@@ -11,8 +11,8 @@ M.pending = {}
 function M._pngpaste(tmp_path)
   if M._test_pngpaste then return M._test_pngpaste(tmp_path) end
   local cmd = string.format("pngpaste %s 2>/dev/null", vim.fn.shellescape(tmp_path))
-  local ok = os.execute(cmd) == 0 or os.execute(cmd) == true  -- Lua 5.1 vs 5.4
-  if not ok then return false end
+  local result = os.execute(cmd)
+  if result ~= 0 and result ~= true then return false end  -- Lua 5.1 returns int, 5.4 returns bool
   if vim.fn.filereadable(tmp_path) ~= 1 then return false end
   if vim.fn.getfsize(tmp_path) <= 0 then return false end
   return true
