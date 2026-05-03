@@ -36,4 +36,26 @@ function M.template_for(target_abs)
   return DEFAULT_TEMPLATE
 end
 
+function M.substitute(lines, vars)
+  local out = {}
+  for _, line in ipairs(lines) do
+    local replaced = line:gsub("{{(%w+)}}", function(name)
+      local v = vars[name]
+      if v == nil then return "{{" .. name .. "}}" end
+      return v
+    end)
+    table.insert(out, replaced)
+  end
+  return out
+end
+
+function M.derive_title(target_abs)
+  local stem = vim.fn.fnamemodify(target_abs, ":t:r")
+  local with_spaces = stem:gsub("[%-_]", " ")
+  -- Title case each word
+  return with_spaces:gsub("(%a)([%w_']*)", function(first, rest)
+    return first:upper() .. rest:lower()
+  end)
+end
+
 return M
