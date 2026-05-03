@@ -4,6 +4,7 @@ local function fresh_vault()
   _G.KB_VAULT_OVERRIDE = tmp
   package.loaded["kb.config"] = nil
   package.loaded["kb.at"] = nil
+  package.loaded["kb.stub"] = nil
   return tmp
 end
 
@@ -134,8 +135,10 @@ describe("kb.at.jump", function()
     vim.cmd("bwipeout!")
   end)
 
-  it("notifies on missing file", function()
+  it("notifies when stub creation declined (missing file)", function()
     fresh_vault()
+    local orig_confirm = vim.fn.confirm
+    vim.fn.confirm = function(_msg, _choices) return 2 end  -- No
     vim.cmd("enew")
     vim.api.nvim_buf_set_lines(0, 0, -1, false, { "see @projects/missing here" })
     vim.api.nvim_win_set_cursor(0, { 1, 5 })
@@ -145,8 +148,9 @@ describe("kb.at.jump", function()
     local at = require("kb.at")
     at.jump()
     vim.notify = original
+    vim.fn.confirm = orig_confirm
     assert.is_not_nil(notified)
-    assert.is_true(notified:match("not found") ~= nil)
+    assert.is_true(notified:match("not created") ~= nil)
     vim.cmd("bwipeout!")
   end)
 
@@ -293,5 +297,52 @@ describe("kb.at.backlinks", function()
     assert.are.equal(vault, calls.grep[1].cwd)
     assert.are.equal("@people/peers/lena", calls.grep[1].search)
     vim.cmd("bwipeout!")
+  end)
+end)
+
+describe("kb.at.jump stub creation", function()
+  local function stub_confirm(answer)
+    local original = vim.fn.confirm
+    vim.fn.confirm = function(_msg, _choices) return answer end
+    return function() vim.fn.confirm = original end
+  end
+
+  it("@-mention to missing target → confirm Yes → file created and opened", function()
+    local vault = fresh_vault()
+    local restore = stub_confirm(1)
+    vim.cmd("enew")
+    vim.api.nvim_buf_set_lines(0, 0, -1, false, { "look @projects/brand-new now" })
+    vim.api.nvim_win_set_cursor(0, { 1, 6 })
+    require("kb.at").jump()
+    restore()
+    assert.are.equal(
+      vim.fn.resolve(vault .. "/projects/brand-new.md"),
+      vim.fn.resolve(vim.api.nvim_buf_get_name(0))
+    )
+  end)
+
+  it("markdown link to missing target → confirm Yes → file created and opened", function()
+    local vault = fresh_vault()
+    local restore = stub_confirm(1)
+    vim.cmd("enew")
+    vim.api.nvim_buf_set_lines(0, 0, -1, false, { "[doc](/projects/new-doc.md)" })
+    vim.api.nvim_win_set_cursor(0, { 1, 1 })
+    require("kb.at").jump()
+    restore()
+    assert.are.equal(
+      vim.fn.resolve(vault .. "/projects/new-doc.md"),
+      vim.fn.resolve(vim.api.nvim_buf_get_name(0))
+    )
+  end)
+
+  it("@-mention to missing target → confirm No → no file created", function()
+    local vault = fresh_vault()
+    local restore = stub_confirm(2)
+    vim.cmd("enew")
+    vim.api.nvim_buf_set_lines(0, 0, -1, false, { "look @projects/no-thanks now" })
+    vim.api.nvim_win_set_cursor(0, { 1, 6 })
+    require("kb.at").jump()
+    restore()
+    assert.are.equal(0, vim.fn.filereadable(vault .. "/projects/no-thanks.md"))
   end)
 end)
