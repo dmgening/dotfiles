@@ -117,15 +117,22 @@ function M.jump_link()
 end
 
 function M.jump()
+  -- Try markdown link first (more specific than @-mention)
   local line = vim.api.nvim_get_current_line()
   local col = vim.api.nvim_win_get_cursor(0)[2] + 1
+  if M.parse_link(line, col) then
+    M.jump_link()
+    return
+  end
+  -- Fall through to @-mention
   local mention = M.parse(line, col)
   if not mention then
-    notify("no @-mention under cursor")
+    notify("no link or mention under cursor")
     return
   end
   local p = M.resolve(mention)
   if not p then
+    -- Stub creation wired up in Task 17; for now: notify
     notify("not found: " .. mention.raw)
     return
   end

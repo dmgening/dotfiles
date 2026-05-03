@@ -162,7 +162,7 @@ describe("kb.at.jump", function()
     at.jump()
     vim.notify = original
     assert.is_not_nil(notified)
-    assert.is_true(notified:match("no @") ~= nil)
+    assert.is_true(notified:match("no link or mention") ~= nil)
     vim.cmd("bwipeout!")
   end)
 end)
@@ -234,6 +234,41 @@ describe("kb.at.resolve_link", function()
     )
     assert.are.equal(vault .. "/projects/x.md", resolved)
     assert.are.equal("section", anchor)
+  end)
+end)
+
+local function write(path, content)
+  vim.fn.mkdir(vim.fn.fnamemodify(path, ":h"), "p")
+  vim.fn.writefile(vim.split(content, "\n"), path)
+end
+
+describe("kb.at.jump dispatcher", function()
+  it("dispatches @-mention to mention-jump path", function()
+    local vault = fresh_vault()
+    write(vault .. "/projects/x.md", "")
+    -- Open a buffer with cursor on the mention
+    vim.cmd("enew")
+    vim.api.nvim_buf_set_lines(0, 0, -1, false, { "see @projects/x today" })
+    vim.api.nvim_win_set_cursor(0, { 1, 4 })  -- on '@'
+    require("kb.at").jump()
+    assert.are.equal(
+      vim.fn.resolve(vault .. "/projects/x.md"),
+      vim.fn.resolve(vim.api.nvim_buf_get_name(0))
+    )
+  end)
+
+  it("dispatches markdown link to jump_link", function()
+    local vault = fresh_vault()
+    local p = vault .. "/projects/x.md"
+    write(p, "")
+    vim.cmd("enew")
+    vim.api.nvim_buf_set_lines(0, 0, -1, false, { "see [x](/projects/x.md) today" })
+    vim.api.nvim_win_set_cursor(0, { 1, 4 })  -- on '['
+    require("kb.at").jump()
+    assert.are.equal(
+      vim.fn.resolve(p),
+      vim.fn.resolve(vim.api.nvim_buf_get_name(0))
+    )
   end)
 end)
 
