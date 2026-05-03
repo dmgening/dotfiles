@@ -162,8 +162,113 @@ describe("kb.at.jump", function()
     at.jump()
     vim.notify = original
     assert.is_not_nil(notified)
-    assert.is_true(notified:match("no @") ~= nil)
+    assert.is_true(notified:match("no link or mention") ~= nil)
     vim.cmd("bwipeout!")
+  end)
+end)
+
+describe("kb.at.parse_link", function()
+  it("parses [text](path) at cursor on text", function()
+    fresh_vault()
+    local at = require("kb.at")
+    local link = at.parse_link("see [docs](/foo/bar.md) here", 8)
+    assert.are.same({ text = "docs", path = "/foo/bar.md" }, link)
+  end)
+
+  it("parses [text](path) at cursor on path", function()
+    fresh_vault()
+    local at = require("kb.at")
+    local link = at.parse_link("see [docs](/foo/bar.md) here", 14)
+    assert.are.same({ text = "docs", path = "/foo/bar.md" }, link)
+  end)
+
+  it("returns nil when cursor is not on a link", function()
+    fresh_vault()
+    local at = require("kb.at")
+    assert.is_nil(at.parse_link("plain text", 4))
+  end)
+end)
+
+describe("kb.at.resolve_link", function()
+  it("resolves vault-rooted /foo.md", function()
+    local vault = fresh_vault()
+    local at = require("kb.at")
+    -- "current buffer" doesn't matter for rooted paths
+    local resolved = at.resolve_link({ path = "/projects/x.md" }, vault .. "/anywhere.md")
+    assert.are.equal(vault .. "/projects/x.md", resolved)
+  end)
+
+  it("resolves bare filename relative to current buffer", function()
+    local vault = fresh_vault()
+    local at = require("kb.at")
+    local resolved = at.resolve_link(
+      { path = "queries.md" },
+      vault .. "/domains/labeling/index.md"
+    )
+    assert.are.equal(vault .. "/domains/labeling/queries.md", resolved)
+  end)
+
+  it("resolves ../ paths", function()
+    local vault = fresh_vault()
+    local at = require("kb.at")
+    local resolved = at.resolve_link(
+      { path = "../labeling/queries.md" },
+      vault .. "/domains/pricing/index.md"
+    )
+    assert.are.equal(vault .. "/domains/labeling/queries.md", resolved)
+  end)
+
+  it("returns http URL as-is (caller handles ui.open)", function()
+    fresh_vault()
+    local at = require("kb.at")
+    local resolved = at.resolve_link({ path = "https://example.com" }, "/anywhere.md")
+    assert.are.equal("https://example.com", resolved)
+  end)
+
+  it("strips #anchor from the path for resolution", function()
+    local vault = fresh_vault()
+    local at = require("kb.at")
+    local resolved, anchor = at.resolve_link(
+      { path = "/projects/x.md#section" },
+      vault .. "/anywhere.md"
+    )
+    assert.are.equal(vault .. "/projects/x.md", resolved)
+    assert.are.equal("section", anchor)
+  end)
+end)
+
+local function write(path, content)
+  vim.fn.mkdir(vim.fn.fnamemodify(path, ":h"), "p")
+  vim.fn.writefile(vim.split(content, "\n"), path)
+end
+
+describe("kb.at.jump dispatcher", function()
+  it("dispatches @-mention to mention-jump path", function()
+    local vault = fresh_vault()
+    write(vault .. "/projects/x.md", "")
+    -- Open a buffer with cursor on the mention
+    vim.cmd("enew")
+    vim.api.nvim_buf_set_lines(0, 0, -1, false, { "see @projects/x today" })
+    vim.api.nvim_win_set_cursor(0, { 1, 4 })  -- on '@'
+    require("kb.at").jump()
+    assert.are.equal(
+      vim.fn.resolve(vault .. "/projects/x.md"),
+      vim.fn.resolve(vim.api.nvim_buf_get_name(0))
+    )
+  end)
+
+  it("dispatches markdown link to jump_link", function()
+    local vault = fresh_vault()
+    local p = vault .. "/projects/x.md"
+    write(p, "")
+    vim.cmd("enew")
+    vim.api.nvim_buf_set_lines(0, 0, -1, false, { "see [x](/projects/x.md) today" })
+    vim.api.nvim_win_set_cursor(0, { 1, 4 })  -- on '['
+    require("kb.at").jump()
+    assert.are.equal(
+      vim.fn.resolve(p),
+      vim.fn.resolve(vim.api.nvim_buf_get_name(0))
+    )
   end)
 end)
 

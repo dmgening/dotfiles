@@ -53,16 +53,86 @@ local function notify(msg, level)
   vim.notify("[kb] " .. msg, level or vim.log.levels.WARN)
 end
 
-function M.jump()
+-- Parse a markdown link [text](path) such that `col` (1-indexed) lies anywhere
+-- between the opening `[` and the closing `)`. Returns { text, path } or nil.
+function M.parse_link(line, col)
+  if not line or not col then return nil end
+  local i = 1
+  while true do
+    local s, e, text, path = line:find("%[([^%]]+)%]%(([^%)]+)%)", i)
+    if not s then return nil end
+    if col >= s and col <= e then
+      return { text = text, path = path }
+    end
+    i = e + 1
+  end
+end
+
+-- Resolve a parsed link's path to either an absolute file path (for local files)
+-- or the original URL string (for http(s)). Returns (resolved_path, anchor_or_nil).
+-- For http(s) URLs, returns (url, nil).
+function M.resolve_link(link, current_buf_abs)
+  local p = link.path
+  if p:match("^https?://") then
+    return p, nil
+  end
+  local anchor = nil
+  local hash = p:find("#", 1, true)
+  if hash then
+    anchor = p:sub(hash + 1)
+    p = p:sub(1, hash - 1)
+  end
+  if p:sub(1, 1) == "/" then
+    -- Vault-rooted
+    return config.vault() .. p, anchor
+  end
+  -- Relative to current buffer's directory
+  local dir = vim.fn.fnamemodify(current_buf_abs, ":h")
+  return vim.fs.normalize(dir .. "/" .. p), anchor
+end
+
+function M.jump_link()
   local line = vim.api.nvim_get_current_line()
   local col = vim.api.nvim_win_get_cursor(0)[2] + 1
+  local link = M.parse_link(line, col)
+  if not link then
+    return false  -- caller (jump dispatcher) decides what to do
+  end
+  local current = vim.api.nvim_buf_get_name(0)
+  local resolved, anchor = M.resolve_link(link, current)
+  if resolved:match("^https?://") then
+    vim.ui.open(resolved)
+    return true
+  end
+  if vim.fn.filereadable(resolved) ~= 1 then
+    -- Stub creation wired up in Task 17; for now: notify
+    notify("not found: " .. resolved)
+    return true
+  end
+  vim.cmd("edit " .. vim.fn.fnameescape(resolved))
+  if anchor then
+    vim.fn.search("^##\\s\\+" .. vim.fn.escape(anchor, "/.\\"), "")
+  end
+  return true
+end
+
+function M.jump()
+  -- Try markdown link first (more specific than @-mention)
+  local line = vim.api.nvim_get_current_line()
+  local col = vim.api.nvim_win_get_cursor(0)[2] + 1
+  if M.parse_link(line, col) then
+    M.jump_link()
+    return
+  end
+  -- Fall through to @-mention
   local mention = M.parse(line, col)
   if not mention then
-    notify("no @-mention under cursor")
+    notify("no link or mention under cursor")
     return
   end
   local p = M.resolve(mention)
   if not p then
+    -- Stub creation wired up in Task 17; for now: notify
     notify("not found: " .. mention.raw)
     return
   end

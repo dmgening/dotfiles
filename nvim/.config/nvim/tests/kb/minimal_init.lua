@@ -29,3 +29,10 @@ vim.api.nvim_create_user_command("PlenaryBustedFile", function(args)
 end, { nargs = 1, complete = "file" })
 
 require("plenary.busted")
+
+-- Define PlenaryBustedFile to run tests in-process (avoids rtp reset in child nvim).
+-- The default plugin/plenary.vim definition spawns a child nvim that inherits
+-- the user's init.lua, which overwrites the rtp set above.
+vim.api.nvim_create_user_command("PlenaryBustedFile", function(o)
+  require("plenary.busted").run(o.args)
+end, { nargs = 1, complete = "file" })
