@@ -5,6 +5,7 @@ local function fresh_vault()
   _G.KB_VAULT_OVERRIDE = tmp
   package.loaded["kb.config"] = nil
   package.loaded["kb.todo"] = nil
+  package.loaded["kb.refresh"] = nil
   return tmp
 end
 
@@ -362,5 +363,32 @@ describe("kb.todo helpers", function()
     local new_ln = todo.move_task(0, 4, "Done")
     assert.is_not_nil(new_ln)
     assert.are.equal("- [ ] one", vim.api.nvim_buf_get_lines(0, new_ln - 1, new_ln, false)[1])
+  end)
+end)
+
+describe("kb.todo.sync with open todo buffer", function()
+  it("writes new tasks through the open buffer (preserves unsaved edits)", function()
+    local vault = fresh_vault()  -- uses the helper already in this spec file
+    local todo_path = vault .. "/todo.md"
+    -- Pre-existing todo.md skeleton + an unsaved-edit scenario.
+    vim.fn.writefile({ "# TODO", "", "## Active", "", "- [ ] keep me", "", "## Waiting", "", "## Someday", "", "## Done", "" }, todo_path)
+    vim.cmd("edit " .. vim.fn.fnameescape(todo_path))
+    -- Simulate an unsaved edit in the buffer (user typed a new line).
+    vim.api.nvim_buf_set_lines(0, 4, 4, false, { "- [ ] in-flight edit" })
+    assert.is_true(vim.bo[0].modified)
+    -- Daily file with a new task.
+    local daily = vault .. "/daily/2026-05-03.md"
+    vim.fn.mkdir(vault .. "/daily", "p")
+    vim.fn.writefile({ "# 2026-05-03", "", "- [ ] from daily" }, daily)
+    require("kb.todo").sync(daily)
+    -- Buffer should contain BOTH the in-flight edit and the synced task.
+    local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+    local joined = table.concat(lines, "\n")
+    assert.is_true(joined:find("in%-flight edit") ~= nil, "in-flight edit was clobbered")
+    assert.is_true(joined:find("from daily") ~= nil, "synced task missing")
+    -- Disk should still have the original (no write happened).
+    local disk = vim.fn.readfile(todo_path)
+    local disk_joined = table.concat(disk, "\n")
+    assert.is_nil(disk_joined:find("from daily"))
   end)
 end)

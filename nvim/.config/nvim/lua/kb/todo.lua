@@ -84,21 +84,12 @@ local function task_text(line)
   return line:match("^%- %[.%] (.+)$")
 end
 
-function M.sync(daily_path)
-  if vim.fn.filereadable(daily_path) ~= 1 then
-    return false
-  end
-  local daily_lines = vim.fn.readfile(daily_path)
-  local candidates = extract_tasks(daily_lines)
-  if #candidates == 0 then
-    return false
-  end
-
-  local todo_lines, was_new = read_or_skeleton()
+-- Pure: given the existing todo.md lines and the candidate task lines, return
+-- the new lines (deduped, appended to ## Active). Returns (new_lines, added_count).
+local function sync_lines(existing, candidates)
+  local todo_lines = #existing > 0 and vim.deepcopy(existing) or vim.deepcopy(SKELETON)
   todo_lines = ensure_active_section(todo_lines)
 
-  -- Dedup by post-checkbox text so a `- [x] foo` in ## Done dedups against
-  -- the daily's `- [ ] foo` (preventing re-insertion of finished tasks).
   local existing_texts = {}
   for _, l in ipairs(todo_lines) do
     local txt = task_text(l)
@@ -112,27 +103,51 @@ function M.sync(daily_path)
   end
   insert_at = insert_at + 1
 
-  local added = false
+  local added = 0
   for _, task in ipairs(candidates) do
     local txt = task_text(task)
     if txt and not existing_texts[txt] then
       table.insert(todo_lines, insert_at, task)
       insert_at = insert_at + 1
       existing_texts[txt] = true
-      added = true
+      added = added + 1
     end
   end
 
-  if not added and not was_new then
-    return false
-  end
-
-  if todo_lines[insert_at] ~= "" then
+  if added > 0 and todo_lines[insert_at] ~= "" then
     table.insert(todo_lines, insert_at, "")
   end
 
-  vim.fn.writefile(todo_lines, M.path())
-  return added or was_new
+  return todo_lines, added
+end
+
+function M.sync(daily_path)
+  if vim.fn.filereadable(daily_path) ~= 1 then
+    return false
+  end
+  local daily_lines = vim.fn.readfile(daily_path)
+  local candidates = extract_tasks(daily_lines)
+  if #candidates == 0 then
+    return false
+  end
+
+  local refresh = require("kb.refresh")
+  local todo_path = M.path()
+  local result_added = 0
+  local was_new = vim.fn.filereadable(todo_path) ~= 1
+
+  refresh.write_through(todo_path, function(existing)
+    local new_lines, added = sync_lines(existing, candidates)
+    result_added = added
+    return new_lines
+  end)
+
+  if result_added == 0 and not was_new then
+    return false
+  end
+
+  refresh.todo()
+  return true
 end
 
 function M.open()
