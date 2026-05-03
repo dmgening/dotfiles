@@ -105,8 +105,12 @@ function M.jump_link()
     return true
   end
   if vim.fn.filereadable(resolved) ~= 1 then
-    -- Stub creation wired up in Task 17; for now: notify
-    notify("not found: " .. resolved)
+    -- Stub-create using the rooted form as {{path}}
+    local rooted_path = "/" .. resolved:sub(#config.vault() + 2)
+    local created = require("kb.stub").create(resolved, rooted_path)
+    if created then
+      vim.cmd("edit " .. vim.fn.fnameescape(created))
+    end
     return true
   end
   vim.cmd("edit " .. vim.fn.fnameescape(resolved))
@@ -132,8 +136,12 @@ function M.jump()
   end
   local p = M.resolve(mention)
   if not p then
-    -- Stub creation wired up in Task 17; for now: notify
-    notify("not found: " .. mention.raw)
+    -- Stub-create: build target path (always flat per design §7a.4)
+    local target = config.vault() .. "/" .. mention.path .. ".md"
+    local created = require("kb.stub").create(target, mention.raw)
+    if created then
+      vim.cmd("edit " .. vim.fn.fnameescape(created))
+    end
     return
   end
   vim.cmd("edit " .. vim.fn.fnameescape(p))
