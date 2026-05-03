@@ -195,4 +195,63 @@ function M.backlinks()
   })
 end
 
+-- Run a shell command and return stdout as a list of lines.
+local function shell_lines(cmd)
+  local out = {}
+  local handle = io.popen(cmd, "r")
+  if not handle then return out end
+  for line in handle:lines() do table.insert(out, line) end
+  handle:close()
+  return out
+end
+
+local function shell_escape(s)
+  return "'" .. s:gsub("'", "'\\''") .. "'"
+end
+
+-- Resolve a captured link path relative to source_dir to an absolute file path.
+-- Vault-rooted (/foo) → vault root; else relative to source_dir.
+local function resolve_captured(captured, source_dir)
+  if captured:sub(1, 1) == "/" then
+    return config.vault() .. captured
+  end
+  return vim.fs.normalize(source_dir .. "/" .. captured)
+end
+
+-- Return all backlinks (in any syntactic form: rooted, relative, bare) whose
+-- target resolves to target_abs. Each result is { file, line, lnum, text }.
+function M.backlinks_for_target(target_abs)
+  local basename = vim.fn.fnamemodify(target_abs, ":t")
+  -- Coarse rg pre-filter: look for "](" + (any non-) chars + basename + ")"
+  -- on a single line. -- vimgrep gives file:lnum:col:text format.
+  local pattern = "\\]\\([^)]*" .. vim.fn.escape(basename, [[\.]]) .. "\\)"
+  local cmd = string.format(
+    "rg --vimgrep --no-heading --color=never --no-config -e %s %s 2>/dev/null",
+    shell_escape(pattern),
+    shell_escape(config.vault())
+  )
+  local lines = shell_lines(cmd)
+  local results = {}
+  for _, l in ipairs(lines) do
+    -- vimgrep format: file:lnum:col:text
+    local file, lnum_str, _, text = l:match("^([^:]+):(%d+):(%d+):(.*)$")
+    if file and text then
+      -- Extract every (path) capture in this line and check if any resolves to target.
+      for captured in text:gmatch("%]%(([^)]+)%)") do
+        local abs = resolve_captured(captured, vim.fn.fnamemodify(file, ":h"))
+        if abs == target_abs then
+          table.insert(results, {
+            file = file,
+            lnum = tonumber(lnum_str),
+            line = text,
+            text = text,
+          })
+          break  -- one result per line is enough
+        end
+      end
+    end
+  end
+  return results
+end
+
 return M
