@@ -48,4 +48,44 @@ function M.resolve(mention)
   return nil
 end
 
+local function notify(msg, level)
+  vim.notify("[kb] " .. msg, level or vim.log.levels.WARN)
+end
+
+function M.jump()
+  local line = vim.api.nvim_get_current_line()
+  local col = vim.api.nvim_win_get_cursor(0)[2] + 1
+  local mention = M.parse(line, col)
+  if not mention then
+    notify("no @-mention under cursor")
+    return
+  end
+  if not mention.bucket then
+    notify("specify bucket: e.g. @reports/" .. mention.name .. " (autocomplete will expand bare forms in Phase 1.5)")
+    return
+  end
+  local p = M.resolve(mention)
+  if not p then
+    notify("not found: " .. mention.raw)
+    return
+  end
+  vim.cmd("edit " .. vim.fn.fnameescape(p))
+end
+
+function M.backlinks()
+  local line = vim.api.nvim_get_current_line()
+  local col = vim.api.nvim_win_get_cursor(0)[2] + 1
+  local mention = M.parse(line, col)
+  if not mention or not mention.bucket then
+    notify("place cursor on a bucketed @-mention (e.g. @reports/vanya)")
+    return
+  end
+  local search = "@" .. mention.bucket .. "/" .. mention.name
+  require("fzf-lua").grep({
+    cwd = config.vault(),
+    search = search,
+    no_esc = true,
+  })
+end
+
 return M

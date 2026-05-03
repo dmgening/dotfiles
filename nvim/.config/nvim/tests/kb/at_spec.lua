@@ -80,3 +80,74 @@ describe("kb.at.resolve", function()
     assert.are.equal(vault .. "/people/reports/vanya.md", p)
   end)
 end)
+
+describe("kb.at.jump", function()
+  it("opens the resolved file when cursor is on a valid mention", function()
+    local vault = fresh_vault()
+    vim.fn.mkdir(vault .. "/projects", "p")
+    vim.fn.writefile({ "# Payments" }, vault .. "/projects/payments.md")
+    vim.cmd("enew")
+    vim.api.nvim_buf_set_lines(0, 0, -1, false, { "see @projects/payments here" })
+    vim.api.nvim_win_set_cursor(0, { 1, 5 })
+    local at = require("kb.at")
+    at.jump()
+    assert.are.equal(vim.fn.resolve(vault .. "/projects/payments.md"), vim.fn.resolve(vim.api.nvim_buf_get_name(0)))
+    vim.cmd("bwipeout!")
+  end)
+
+  it("notifies error when cursor is on a bare mention", function()
+    fresh_vault()
+    vim.cmd("enew")
+    vim.api.nvim_buf_set_lines(0, 0, -1, false, { "see @vanya here" })
+    vim.api.nvim_win_set_cursor(0, { 1, 5 })
+    local notified = nil
+    local original_notify = vim.notify
+    vim.notify = function(msg, _) notified = msg end
+    local at = require("kb.at")
+    at.jump()
+    vim.notify = original_notify
+    assert.is_not_nil(notified)
+    assert.is_true(notified:match("specify bucket") ~= nil)
+    vim.cmd("bwipeout!")
+  end)
+
+  it("notifies error when resolved file does not exist", function()
+    fresh_vault()
+    vim.cmd("enew")
+    vim.api.nvim_buf_set_lines(0, 0, -1, false, { "see @projects/missing here" })
+    vim.api.nvim_win_set_cursor(0, { 1, 5 })
+    local notified = nil
+    local original_notify = vim.notify
+    vim.notify = function(msg, _) notified = msg end
+    local at = require("kb.at")
+    at.jump()
+    vim.notify = original_notify
+    assert.is_not_nil(notified)
+    assert.is_true(notified:match("not found") ~= nil)
+    vim.cmd("bwipeout!")
+  end)
+end)
+
+local function stub_fzf_grep()
+  local calls = { grep = {} }
+  package.loaded["fzf-lua"] = {
+    grep = function(opts) table.insert(calls.grep, opts) end,
+  }
+  return calls
+end
+
+describe("kb.at.backlinks", function()
+  it("calls fzf-lua.grep with the mention regex when cursor is on a bucketed mention", function()
+    local vault = fresh_vault()
+    local calls = stub_fzf_grep()
+    vim.cmd("enew")
+    vim.api.nvim_buf_set_lines(0, 0, -1, false, { "see @reports/vanya here" })
+    vim.api.nvim_win_set_cursor(0, { 1, 5 })
+    local at = require("kb.at")
+    at.backlinks()
+    assert.are.equal(1, #calls.grep)
+    assert.are.equal(vault, calls.grep[1].cwd)
+    assert.are.equal("@reports/vanya", calls.grep[1].search)
+    vim.cmd("bwipeout!")
+  end)
+end)
