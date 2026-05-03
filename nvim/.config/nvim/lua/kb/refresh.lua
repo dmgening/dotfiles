@@ -45,4 +45,26 @@ function M.path(abs_path)
   end
 end
 
+-- Apply lines_fn to the current contents of abs_path and write the result.
+-- If a loaded buffer points at abs_path, modify the buffer's lines and mark
+-- it dirty (user saves later). Otherwise read+write the file on disk.
+function M.write_through(abs_path, lines_fn)
+  local bufs = buffers_for(abs_path)
+  if #bufs > 0 then
+    local buf = bufs[1]
+    local current = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+    local new = lines_fn(current)
+    vim.api.nvim_buf_set_lines(buf, 0, -1, false, new)
+    vim.bo[buf].modified = true
+    return
+  end
+  local current = {}
+  if vim.fn.filereadable(abs_path) == 1 then
+    current = vim.fn.readfile(abs_path)
+  end
+  local new = lines_fn(current)
+  vim.fn.mkdir(vim.fn.fnamemodify(abs_path, ":h"), "p")
+  vim.fn.writefile(new, abs_path)
+end
+
 return M

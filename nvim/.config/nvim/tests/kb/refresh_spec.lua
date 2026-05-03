@@ -58,3 +58,44 @@ describe("kb.refresh.path", function()
     assert.has_no.errors(function() require("kb.refresh").path(p) end)
   end)
 end)
+
+describe("kb.refresh.write_through", function()
+  it("writes to disk when no buffer is open for the path", function()
+    reset()
+    local p = vim.fn.tempname() .. ".md"
+    vim.fn.writefile({ "old" }, p)
+    require("kb.refresh").write_through(p, function(lines)
+      table.insert(lines, "new")
+      return lines
+    end)
+    assert.are.same({ "old", "new" }, vim.fn.readfile(p))
+  end)
+
+  it("writes through buffer when open (modifies, marks dirty, no disk write)", function()
+    reset()
+    local p = vim.fn.tempname() .. ".md"
+    vim.fn.writefile({ "old" }, p)
+    vim.cmd("edit " .. vim.fn.fnameescape(p))
+    require("kb.refresh").write_through(p, function(lines)
+      table.insert(lines, "new")
+      return lines
+    end)
+    -- Buffer should reflect the new content.
+    local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+    assert.are.same({ "old", "new" }, lines)
+    -- Buffer should be modified (user must :w to persist).
+    assert.is_true(vim.bo[0].modified)
+    -- Disk should still have the old content.
+    assert.are.same({ "old" }, vim.fn.readfile(p))
+  end)
+
+  it("creates the file if it didn't exist (no-buffer path)", function()
+    reset()
+    local p = vim.fn.tempname() .. ".md"
+    require("kb.refresh").write_through(p, function(lines)
+      assert.are.same({}, lines)
+      return { "fresh" }
+    end)
+    assert.are.same({ "fresh" }, vim.fn.readfile(p))
+  end)
+end)
