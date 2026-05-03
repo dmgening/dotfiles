@@ -67,6 +67,7 @@ function M.open()
   local left_win = vim.api.nvim_tabpage_list_wins(0)[1]
   local left_buf = vim.api.nvim_win_get_buf(left_win)
   vim.keymap.set("n", "t", function() M.toggle_left() end, { buffer = left_buf, desc = "kb dashboard: toggle todo/daily" })
+  M.rebuild_marks()
 end
 
 -- Pure: given a date string, open the daily in the current window if the file
@@ -110,6 +111,39 @@ function M.toggle_left()
   else
     vim.cmd("edit " .. vim.fn.fnameescape(todo_path))
     vim.keymap.set("n", "t", function() M.toggle_left() end, { buffer = 0, desc = "kb dashboard: toggle todo/daily" })
+  end
+end
+
+-- Rebuild the calendar mark set from todo.md. Registers g:calendar_sign as a
+-- vim funcref (via vim.fn['']) that returns "*" for marked dates, "" otherwise.
+function M.rebuild_marks()
+  local dates = M.due_dates()
+  local set = {}
+  for _, d in ipairs(dates) do set[d] = true end
+  -- Define a Vim global function and store its funcref in g:calendar_sign.
+  -- (calendar-vim calls it as g:calendar_sign(day, month, year).)
+  _G.kb_calendar_sign = function(day, month, year)
+    local key = string.format("%04d-%02d-%02d", year, month, day)
+    return set[key] and "*" or ""
+  end
+  vim.cmd([[
+    function! KbCalendarSign(day, month, year) abort
+      return v:lua.kb_calendar_sign(a:day, a:month, a:year)
+    endfunction
+  ]])
+  vim.g.calendar_sign = "KbCalendarSign"
+  -- Force calendar-vim to redraw if a calendar buffer is visible.
+  for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+    if vim.api.nvim_buf_is_loaded(buf) then
+      local ft = vim.bo[buf].filetype
+      if ft == "calendar" then
+        for _, win in ipairs(vim.api.nvim_list_wins()) do
+          if vim.api.nvim_win_get_buf(win) == buf then
+            pcall(vim.api.nvim_win_call, win, function() vim.cmd("CalendarVR") end)
+          end
+        end
+      end
+    end
   end
 end
 

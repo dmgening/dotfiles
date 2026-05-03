@@ -148,3 +148,20 @@ describe("kb.dashboard.jump_calendar_date", function()
     assert.is_true(name:match("todo%.md$") ~= nil, "expected todo.md; got " .. name)
   end)
 end)
+
+describe("kb.dashboard.rebuild_marks", function()
+  it("sets g:calendar_sign to mark only due dates", function()
+    local vault = fresh_vault()
+    write(vault .. "/todo.md", "## Active\n- [ ] x due:2026-05-10\n")
+    require("kb.dashboard").rebuild_marks()
+    -- g:calendar_sign should be a function-like object that returns "*" for
+    -- (10, 5, 2026) and "" for unrelated dates.
+    local fn = vim.g.calendar_sign
+    assert.is_not_nil(fn)
+    -- calendar-vim invokes g:calendar_sign as a Vim funcref via call().
+    local marked = vim.fn.call(fn, { 10, 5, 2026 })
+    local unmarked = vim.fn.call(fn, { 11, 5, 2026 })
+    assert.are.equal("*", marked)
+    assert.are.equal("", unmarked)
+  end)
+end)
