@@ -99,3 +99,85 @@ describe("kb.stub.derive_title", function()
     assert.are.equal("Big Idea", stub.derive_title("/x/big_idea.md"))
   end)
 end)
+
+describe("kb.stub.create", function()
+  -- Helper: stub vim.fn.confirm to a chosen response.
+  local function stub_confirm(answer)
+    local original = vim.fn.confirm
+    vim.fn.confirm = function(_msg, _choices)
+      return answer  -- 1 = Yes, 2 = No
+    end
+    return function() vim.fn.confirm = original end
+  end
+
+  it("does not create file when user picks No", function()
+    local vault = fresh_vault()
+    local restore = stub_confirm(2)
+    local stub = require("kb.stub")
+    local target = vault .. "/projects/never.md"
+    local result = stub.create(target, "@projects/never")
+    restore()
+    assert.is_nil(result)
+    assert.are.equal(0, vim.fn.filereadable(target))
+  end)
+
+  it("creates file with substituted template when user picks Yes", function()
+    local vault = fresh_vault()
+    write(vault .. "/.templates/entity.md", "# {{title}}\n\nref: {{path}}\n")
+    local restore = stub_confirm(1)
+    local stub = require("kb.stub")
+    local target = vault .. "/projects/labeling-pipeline.md"
+    local result = stub.create(target, "@projects/labeling-pipeline")
+    restore()
+    assert.are.equal(target, result)
+    local contents = table.concat(vim.fn.readfile(target), "\n")
+    assert.is_truthy(contents:find("# Labeling Pipeline"))
+    assert.is_truthy(contents:find("ref: @projects/labeling-pipeline", 1, true))
+  end)
+
+  it("creates parent directories as needed", function()
+    local vault = fresh_vault()
+    local restore = stub_confirm(1)
+    local stub = require("kb.stub")
+    local target = vault .. "/people/peers/new-person.md"
+    stub.create(target, "@people/peers/new-person")
+    restore()
+    assert.are.equal(1, vim.fn.filereadable(target))
+  end)
+
+  it("calls index.refresh_file so new entity is mentionable immediately", function()
+    local vault = fresh_vault()
+    -- Mock kb.index before requiring kb.stub so the pcall finds it
+    local was_called = nil
+    package.loaded["kb.index"] = { refresh_file = function(p) was_called = p end }
+    local restore = stub_confirm(1)
+    local stub = require("kb.stub")
+    local target = vault .. "/projects/freshly.md"
+    stub.create(target, "@projects/freshly")
+    restore()
+    assert.are.equal(target, was_called)
+  end)
+
+  it("rejects targets outside the vault", function()
+    fresh_vault()
+    local restore = stub_confirm(1)
+    local stub = require("kb.stub")
+    local result = stub.create("/tmp/random/elsewhere.md", "/tmp/random/elsewhere.md")
+    restore()
+    assert.is_nil(result)
+    assert.are.equal(0, vim.fn.filereadable("/tmp/random/elsewhere.md"))
+  end)
+
+  it("aborts when target already exists", function()
+    local vault = fresh_vault()
+    local target = vault .. "/projects/existing.md"
+    write(target, "ORIGINAL")
+    local restore = stub_confirm(1)
+    local stub = require("kb.stub")
+    local result = stub.create(target, "@projects/existing")
+    restore()
+    assert.is_nil(result)
+    -- File contents unchanged
+    assert.are.equal("ORIGINAL", table.concat(vim.fn.readfile(target), "\n"))
+  end)
+end)

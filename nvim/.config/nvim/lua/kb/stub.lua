@@ -58,4 +58,52 @@ function M.derive_title(target_abs)
   end)
 end
 
+local function notify(msg, level)
+  vim.notify("[kb] " .. msg, level or vim.log.levels.WARN)
+end
+
+-- target_abs : absolute file path to create
+-- canonical_or_rooted : the {{path}} value (e.g. "@people/peers/lena" for entities,
+--                       "/domains/labeling/queries.md" for sub-files)
+function M.create(target_abs, canonical_or_rooted)
+  local vault = config.vault()
+
+  -- Outside-vault guard
+  if not vim.startswith(target_abs, vault .. "/") then
+    notify("refusing to create file outside vault: " .. target_abs)
+    return nil
+  end
+
+  -- Already-exists guard
+  if vim.fn.filereadable(target_abs) == 1 then
+    notify("already exists: " .. target_abs)
+    return nil
+  end
+
+  local rel = target_abs:sub(#vault + 2)
+  local choice = vim.fn.confirm("Create '" .. rel .. "'?", "&Yes\n&No")
+  if choice ~= 1 then
+    notify("not created")
+    return nil
+  end
+
+  local template = M.template_for(target_abs)
+  local vars = {
+    title = M.derive_title(target_abs),
+    date = os.date("%Y-%m-%d"),
+    path = canonical_or_rooted,
+  }
+  local lines = M.substitute(template, vars)
+
+  -- Ensure parent dirs
+  local parent = vim.fn.fnamemodify(target_abs, ":h")
+  vim.fn.mkdir(parent, "p")
+  vim.fn.writefile(lines, target_abs)
+
+  -- Refresh the index so the new entity is mentionable immediately.
+  pcall(function() require("kb.index").refresh_file(target_abs) end)
+
+  return target_abs
+end
+
 return M
