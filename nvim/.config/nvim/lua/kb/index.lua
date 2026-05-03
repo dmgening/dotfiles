@@ -138,9 +138,55 @@ function M.entities()
   return cache.entities
 end
 
+-- Tag regex: `#tag` where the char before # is start-of-line, whitespace, or
+-- punctuation (not alphanumeric or underscore). Uses PCRE \K to reset match
+-- start so --only-matching gives just the #tag without the boundary char.
+local TAG_PCRE = [[(?:^|[^A-Za-z0-9_])\K(#[A-Za-z][A-Za-z0-9/_-]*)]]
+
+local function scan_tags()
+  if vim.fn.executable("rg") == 0 then
+    vim.notify("[kb] rg not found, tag completion disabled", vim.log.levels.WARN)
+    return {}, {}
+  end
+  local vault = config.vault()
+  -- Use --only-matching + --with-filename for clean file:#tag output.
+  -- \K ensures the match starts at #, so no boundary char in output.
+  local cmd = {
+    "rg", "--pcre2", "--only-matching", "--with-filename", "--no-heading",
+    TAG_PCRE,
+    vault,
+    "--glob", "!.git/**",
+    "--glob", "!.trash/**",
+    "--glob", "!.templates/**",
+  }
+  local result = vim.system(cmd, { text = true }):wait()
+  if result.code ~= 0 and result.code ~= 1 then
+    vim.notify("[kb] rg tag scan failed: " .. (result.stderr or ""), vim.log.levels.WARN)
+    return {}, {}
+  end
+  local set = {}
+  local per_file = {}
+  for line in (result.stdout or ""):gmatch("[^\n]+") do
+    -- Format: /path/to/file.md:#tagname
+    local file, tag = line:match("^(.-):([#][A-Za-z][%w/_%-]*)$")
+    if file and tag then
+      set[tag] = true
+      per_file[file] = per_file[file] or {}
+      per_file[file][tag] = true
+    end
+  end
+  local tags = {}
+  for tag in pairs(set) do
+    table.insert(tags, tag)
+  end
+  return tags, per_file
+end
+
 function M.tags()
   if cache.tags == nil then
-    cache.tags = {}  -- tag scan added in Task 5
+    local tags, per_file = scan_tags()
+    cache.tags = tags
+    cache.per_file_tags = per_file
   end
   return cache.tags
 end
