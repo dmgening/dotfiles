@@ -11,6 +11,8 @@ local SKELETON = {
   "",
   "## Someday",
   "",
+  "## Done",
+  "",
 }
 
 function M.path()
@@ -123,6 +125,98 @@ end
 
 function M.open()
   vim.cmd("edit " .. vim.fn.fnameescape(M.path()))
+end
+
+local STATE_CYCLE = { " ", "/", "x", "-", ">", "?" }
+
+local function state_index(ch)
+  for i, s in ipairs(STATE_CYCLE) do
+    if s == ch then return i end
+  end
+  return nil
+end
+
+local function get_lines(bufnr)
+  return vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+end
+
+local function set_lines(bufnr, lines)
+  vim.bo[bufnr].modifiable = true
+  vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, lines)
+  vim.cmd("write")
+end
+
+local function find_section_bounds(lines, name)
+  local header = "## " .. name
+  local start = nil
+  for i, l in ipairs(lines) do
+    if l == header then start = i; break end
+  end
+  if not start then return nil, nil end
+  local stop = #lines + 1
+  for i = start + 1, #lines do
+    if lines[i]:match("^## ") then stop = i; break end
+  end
+  return start, stop
+end
+
+function M.move_task(bufnr, lnum, target_section)
+  local lines = get_lines(bufnr)
+  local task = lines[lnum]
+  if not task or not task:match("^%- %[.%] ") then
+    vim.notify("[kb] not a task line", vim.log.levels.WARN)
+    return
+  end
+  table.remove(lines, lnum)
+  local _, stop = find_section_bounds(lines, target_section)
+  if not stop then
+    vim.notify("[kb] section ## " .. target_section .. " not found", vim.log.levels.WARN)
+    return
+  end
+  -- Insert just before the trailing blank line that precedes the next section header
+  local insert_at = stop - 1
+  while insert_at >= 1 and lines[insert_at] == "" do
+    insert_at = insert_at - 1
+  end
+  insert_at = insert_at + 1
+  table.insert(lines, insert_at, task)
+  set_lines(bufnr, lines)
+end
+
+function M.toggle_state(bufnr, lnum)
+  local lines = get_lines(bufnr)
+  local task = lines[lnum]
+  if not task then return end
+  local prefix, state, rest = task:match("^(%- %[)(.)(%].*)$")
+  if not prefix then
+    vim.notify("[kb] not a task line", vim.log.levels.WARN)
+    return
+  end
+  local new_state = state == "x" and " " or "x"
+  lines[lnum] = prefix .. new_state .. rest
+  set_lines(bufnr, lines)
+  if new_state == "x" then
+    M.move_task(bufnr, lnum, "Done")
+  end
+end
+
+function M.cycle_state(bufnr, lnum)
+  local lines = get_lines(bufnr)
+  local task = lines[lnum]
+  if not task then return end
+  local prefix, state, rest = task:match("^(%- %[)(.)(%].*)$")
+  if not prefix then
+    vim.notify("[kb] not a task line", vim.log.levels.WARN)
+    return
+  end
+  local idx = state_index(state) or 1
+  local next_idx = (idx % #STATE_CYCLE) + 1
+  local new_state = STATE_CYCLE[next_idx]
+  lines[lnum] = prefix .. new_state .. rest
+  set_lines(bufnr, lines)
+  if new_state == "x" or new_state == "-" then
+    M.move_task(bufnr, lnum, "Done")
+  end
 end
 
 return M
