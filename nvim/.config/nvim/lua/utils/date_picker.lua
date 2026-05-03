@@ -38,9 +38,10 @@ function M.apply_date(date)
   end
 end
 
--- Open the calendar popup at the appropriate date and write back on selection.
--- This is the user-facing entry point. Invokes calendar-vim's :CalendarT.
--- The selection callback is registered via g:calendar_action.
+-- Open the calendar in a vertical-split sidebar at the appropriate date and
+-- write back on selection. Uses :Calendar (vsplit) rather than :CalendarT
+-- (full-screen tab) to keep the editing buffer visible alongside the picker.
+-- Selection callback registered via g:calendar_action.
 function M.pick()
   local token = M.parse_date_token_under_cursor()
   local source_buf = vim.api.nvim_get_current_buf()
@@ -68,9 +69,9 @@ function M.pick()
   vim.g.calendar_action = "UtilsDatePickerAction"
   if token then
     local y, m, d = token.date:match("(%d%d%d%d)-(%d%d)-(%d%d)")
-    vim.cmd(string.format("CalendarT %s %s %s", y, m, d))
+    vim.cmd(string.format("Calendar %s %s %s", y, m, d))
   else
-    vim.cmd("CalendarT")
+    vim.cmd("Calendar")
   end
 end
 
