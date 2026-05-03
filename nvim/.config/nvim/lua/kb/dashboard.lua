@@ -45,7 +45,7 @@ function M.due_dates()
   return out
 end
 
--- Open the dashboard tab. Left = todo.md (~70%), right = year calendar.
+-- Open the dashboard tab. Left = year calendar (~30%), right = todo.md (~70%).
 function M.open()
   local todo_path = config.vault() .. "/todo.md"
   -- Ensure todo.md exists (so :edit doesn't create an empty unnamed buffer).
@@ -53,22 +53,23 @@ function M.open()
     vim.fn.mkdir(vim.fn.fnamemodify(todo_path, ":h"), "p")
     vim.fn.writefile({ "# TODO", "", "## Active", "", "## Waiting", "", "## Someday", "", "## Done", "" }, todo_path)
   end
+  -- Open todo first (will end up on the right).
   vim.cmd("tabnew " .. vim.fn.fnameescape(todo_path))
-  vim.cmd("vertical rightbelow Calendar -view=year")
-  -- The calendar buffer is now current. Bind <CR> there.
+  local content_win = vim.api.nvim_get_current_win()
+  local content_buf = vim.api.nvim_get_current_buf()
+  -- Open calendar to the LEFT of todo.
+  vim.cmd("vertical leftabove Calendar -view=year")
+  local calendar_win = vim.api.nvim_get_current_win()
+  vim.api.nvim_win_set_width(calendar_win, math.floor(vim.o.columns * 0.3))
+  -- Bind <CR>, ?, q on the calendar buffer (current).
   vim.keymap.set("n", "<CR>", function() M.jump_calendar_date() end, {
     buffer = 0,
     desc = "kb dashboard: open daily for date under cursor",
   })
   vim.keymap.set("n", "?", function() M.help() end, { buffer = 0, desc = "kb dashboard: help" })
   vim.keymap.set("n", "q", function() vim.cmd("tabclose") end, { buffer = 0, desc = "kb dashboard: close" })
-  -- Resize right pane to ~30% of total columns.
-  local right_win = vim.api.nvim_get_current_win()
-  vim.api.nvim_win_set_width(right_win, math.floor(vim.o.columns * 0.3))
-  -- Set buffer-local 't' on the left window.
-  local left_win = vim.api.nvim_tabpage_list_wins(0)[1]
-  local left_buf = vim.api.nvim_win_get_buf(left_win)
-  vim.keymap.set("n", "t", function() M.toggle_left() end, { buffer = left_buf, desc = "kb dashboard: toggle todo/daily" })
+  -- Bind 't' on the content (right) buffer.
+  vim.keymap.set("n", "t", function() M.toggle_content() end, { buffer = content_buf, desc = "kb dashboard: toggle todo/daily" })
   M.rebuild_marks()
 end
 
@@ -80,10 +81,13 @@ function M.jump_calendar_date_for(date)
     vim.notify("[kb] no daily for " .. date, vim.log.levels.INFO)
     return
   end
-  -- Switch to the dashboard's left window before opening.
-  local wins = vim.api.nvim_tabpage_list_wins(0)
-  if #wins >= 1 then
-    vim.api.nvim_set_current_win(wins[1])
+  -- Switch to the dashboard's content window (the non-calendar one) before opening.
+  for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+    local buf = vim.api.nvim_win_get_buf(win)
+    if vim.bo[buf].filetype ~= "calendar" then
+      vim.api.nvim_set_current_win(win)
+      break
+    end
   end
   vim.cmd("edit " .. vim.fn.fnameescape(p))
 end
@@ -101,20 +105,25 @@ function M.jump_calendar_date()
   M.jump_calendar_date_for(date)
 end
 
-function M.toggle_left()
+-- Toggle the content pane between todo.md and today's daily. Operates on the
+-- current window/buffer, so the caller must press `t` while focused on the
+-- content pane (the `t` keymap is buffer-local on the content buffer).
+function M.toggle_content()
   local config_mod = require("kb.config")
   local todo_path = config_mod.vault() .. "/todo.md"
   local current = vim.api.nvim_buf_get_name(0)
   if vim.fn.resolve(vim.fn.fnamemodify(current, ":p")) == vim.fn.resolve(vim.fn.fnamemodify(todo_path, ":p")) then
     -- Currently on todo → switch to today's daily (creates if missing).
     require("kb.daily").open_today()
-    -- Re-bind 't' on the new buffer.
-    vim.keymap.set("n", "t", function() M.toggle_left() end, { buffer = 0, desc = "kb dashboard: toggle todo/daily" })
+    vim.keymap.set("n", "t", function() M.toggle_content() end, { buffer = 0, desc = "kb dashboard: toggle todo/daily" })
   else
     vim.cmd("edit " .. vim.fn.fnameescape(todo_path))
-    vim.keymap.set("n", "t", function() M.toggle_left() end, { buffer = 0, desc = "kb dashboard: toggle todo/daily" })
+    vim.keymap.set("n", "t", function() M.toggle_content() end, { buffer = 0, desc = "kb dashboard: toggle todo/daily" })
   end
 end
+
+-- Backward-compatible alias for tests/external callers.
+M.toggle_left = M.toggle_content
 
 -- Rebuild the calendar mark set from todo.md. Registers g:calendar_sign as a
 -- vim funcref (via vim.fn['']) that returns "*" for marked dates, "" otherwise.
@@ -152,10 +161,10 @@ end
 local HELP_LINES = {
   "  kb dashboard ",
   "",
-  "  Left pane:",
+  "  Content pane (right):",
   "    t           toggle todo ⇄ today's daily",
   "",
-  "  Calendar pane:",
+  "  Calendar pane (left):",
   "    <CR>        open daily for date under cursor (if it exists)",
   "    ?           this help",
   "    q           close dashboard",
