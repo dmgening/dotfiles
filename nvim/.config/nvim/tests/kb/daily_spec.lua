@@ -5,6 +5,7 @@ local function fresh_vault()
   package.loaded["kb.config"] = nil
   package.loaded["kb.daily"] = nil
   package.loaded["kb.todo"] = nil
+  package.loaded["kb.refresh"] = nil
   return tmp
 end
 
@@ -95,6 +96,21 @@ describe("kb.daily.append_section", function()
     daily.append_section("- [ ] new task from capture")
     local todo_lines = vim.fn.readfile(vault .. "/todo.md")
     assert.is_true(vim.tbl_contains(todo_lines, "- [ ] new task from capture"))
+  end)
+end)
+
+describe("kb.daily.append_section with open daily buffer", function()
+  it("refreshes the open daily buffer after writing", function()
+    local vault = fresh_vault()
+    local daily = require("kb.daily")
+    -- Pre-create today's daily so we have a buffer to open.
+    daily.ensure()
+    vim.cmd("edit " .. vim.fn.fnameescape(daily.path()))
+    local buf = vim.api.nvim_get_current_buf()
+    daily.append_section("a captured thought")
+    local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+    local joined = table.concat(lines, "\n")
+    assert.is_true(joined:find("a captured thought") ~= nil)
   end)
 end)
 

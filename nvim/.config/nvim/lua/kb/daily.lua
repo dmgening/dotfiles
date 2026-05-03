@@ -51,6 +51,7 @@ function M.append_section(text, date)
 
   vim.fn.writefile(new_lines, p)
 
+  require("kb.refresh").path(p)
   require("kb.todo").sync(p)
 
   return p
