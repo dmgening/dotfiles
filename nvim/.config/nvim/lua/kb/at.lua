@@ -2,46 +2,47 @@ local config = require("kb.config")
 
 local M = {}
 
--- Buckets that live under people/. Everything else is treated as a top-level entity dir.
-local PEOPLE_BUCKETS = { reports = true, peers = true, leadership = true, family = true }
-
--- Match @<bucket>/<name> or @<name>. Allows letters, digits, underscore, dash in bucket and name.
-local MENTION_PATTERN = "@([%w_%-]+)/?([%w_%-]*)"
+-- Match @ followed by a path-like sequence (alphanumerics, underscore, dash, slash).
+-- Left-anchored so it doesn't match the @ in email-like text (a@b.com).
+-- Trailing slash is allowed for in-flight typing but yields the path without it.
+local MENTION_PATTERN = "([%s%p]?)@([%w_%-/]+)"
 
 -- Parse the mention at column `col` (1-indexed) in `line`.
--- Returns { bucket, name, raw } or nil.
+-- Returns { path, raw } or nil.
 function M.parse(line, col)
   if not line or not col then return nil end
   local i = 1
   while true do
-    local s, e, first, second = line:find(MENTION_PATTERN, i)
+    local s, e, prefix, path = line:find(MENTION_PATTERN, i)
     if not s then return nil end
-    if col >= s and col <= e then
-      if second == "" then
-        return { bucket = nil, name = first, raw = line:sub(s, e) }
-      else
-        return { bucket = first, name = second, raw = line:sub(s, e) }
+    -- prefix must be empty (start-of-line) or whitespace/punctuation that's not alnum/_-
+    -- Lua's pattern already enforces this via [%s%p]?, but emails like a@b.com
+    -- have prefix='a' which fails [%s%p]. So we additionally check that if the
+    -- character immediately before @ exists and is alphanumeric/_, we skip.
+    local at_pos = s + #prefix
+    local before = at_pos > 1 and line:sub(at_pos - 1, at_pos - 1) or ""
+    if before == "" or before:match("[%s%p]") then
+      -- Trim trailing slash from path (in-flight typing)
+      local clean_path = path:gsub("/$", "")
+      if clean_path ~= "" and col >= at_pos and col <= e then
+        return {
+          path = clean_path,
+          raw = "@" .. clean_path,
+        }
       end
     end
     i = e + 1
   end
 end
 
-local function entity_dir(bucket)
-  if PEOPLE_BUCKETS[bucket] then
-    return config.vault() .. "/people/" .. bucket
-  end
-  return config.vault() .. "/" .. bucket
-end
-
 function M.resolve(mention)
-  if not mention or not mention.bucket then return nil end
-  local dir = entity_dir(mention.bucket)
-  local flat = dir .. "/" .. mention.name .. ".md"
+  if not mention or not mention.path or mention.path == "" then return nil end
+  local vault = config.vault()
+  local flat = vault .. "/" .. mention.path .. ".md"
   if vim.fn.filereadable(flat) == 1 then
     return flat
   end
-  local folder = dir .. "/" .. mention.name .. "/index.md"
+  local folder = vault .. "/" .. mention.path .. "/index.md"
   if vim.fn.filereadable(folder) == 1 then
     return folder
   end
@@ -60,10 +61,6 @@ function M.jump()
     notify("no @-mention under cursor")
     return
   end
-  if not mention.bucket then
-    notify("specify bucket: e.g. @reports/" .. mention.name .. " (autocomplete will expand bare forms in Phase 1.5)")
-    return
-  end
   local p = M.resolve(mention)
   if not p then
     notify("not found: " .. mention.raw)
@@ -76,14 +73,13 @@ function M.backlinks()
   local line = vim.api.nvim_get_current_line()
   local col = vim.api.nvim_win_get_cursor(0)[2] + 1
   local mention = M.parse(line, col)
-  if not mention or not mention.bucket then
-    notify("place cursor on a bucketed @-mention (e.g. @reports/vanya)")
+  if not mention then
+    notify("no @-mention under cursor")
     return
   end
-  local search = "@" .. mention.bucket .. "/" .. mention.name
   require("fzf-lua").grep({
     cwd = config.vault(),
-    search = search,
+    search = mention.raw,
     no_esc = true,
   })
 end
