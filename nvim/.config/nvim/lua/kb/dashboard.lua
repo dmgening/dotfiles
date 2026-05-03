@@ -55,6 +55,11 @@ function M.open()
   end
   vim.cmd("tabnew " .. vim.fn.fnameescape(todo_path))
   vim.cmd("vertical rightbelow Calendar -view=year")
+  -- The calendar buffer is now current. Bind <CR> there.
+  vim.keymap.set("n", "<CR>", function() M.jump_calendar_date() end, {
+    buffer = 0,
+    desc = "kb dashboard: open daily for date under cursor",
+  })
   -- Resize right pane to ~30% of total columns.
   local right_win = vim.api.nvim_get_current_win()
   vim.api.nvim_win_set_width(right_win, math.floor(vim.o.columns * 0.3))
@@ -62,6 +67,35 @@ function M.open()
   local left_win = vim.api.nvim_tabpage_list_wins(0)[1]
   local left_buf = vim.api.nvim_win_get_buf(left_win)
   vim.keymap.set("n", "t", function() M.toggle_left() end, { buffer = left_buf, desc = "kb dashboard: toggle todo/daily" })
+end
+
+-- Pure: given a date string, open the daily in the current window if the file
+-- exists; else notify. Used by jump_calendar_date and directly testable.
+function M.jump_calendar_date_for(date)
+  local p = config.vault() .. "/daily/" .. date .. ".md"
+  if vim.fn.filereadable(p) ~= 1 then
+    vim.notify("[kb] no daily for " .. date, vim.log.levels.INFO)
+    return
+  end
+  -- Switch to the dashboard's left window before opening.
+  local wins = vim.api.nvim_tabpage_list_wins(0)
+  if #wins >= 1 then
+    vim.api.nvim_set_current_win(wins[1])
+  end
+  vim.cmd("edit " .. vim.fn.fnameescape(p))
+end
+
+-- Read date under cursor in calendar-vim's pane and dispatch.
+-- calendar-vim exposes b:CalendarYear / b:CalendarMonth on the buffer; the day
+-- number is the bare integer at the cursor position. If parsing fails, no-op.
+function M.jump_calendar_date()
+  local year = vim.b.CalendarYear
+  local month = vim.b.CalendarMonth
+  if not (year and month) then return end
+  local day = vim.fn.expand("<cword>"):match("^(%d%d?)$")
+  if not day then return end
+  local date = string.format("%04d-%02d-%02d", year, tonumber(month), tonumber(day))
+  M.jump_calendar_date_for(date)
 end
 
 function M.toggle_left()

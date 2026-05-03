@@ -120,3 +120,31 @@ describe("kb.dashboard.toggle_left", function()
     pcall(vim.api.nvim_del_user_command, "Calendar")
   end)
 end)
+
+describe("kb.dashboard.jump_calendar_date", function()
+  it("opens an existing daily for the date passed in", function()
+    local vault = fresh_vault()
+    local daily = vault .. "/daily/2026-04-28.md"
+    write(daily, "# 2026-04-28\n")
+    -- Set up a left window pointing at todo.md so jump can replace its buffer.
+    write(vault .. "/todo.md", "## Active\n")
+    vim.cmd("edit " .. vim.fn.fnameescape(vault .. "/todo.md"))
+    require("kb.dashboard").jump_calendar_date_for("2026-04-28")
+    local name = vim.api.nvim_buf_get_name(0)
+    assert.is_true(name:match("daily/2026%-04%-28%.md$") ~= nil, "expected daily; got " .. name)
+  end)
+
+  it("notifies and does not change buffer when the daily does not exist", function()
+    local vault = fresh_vault()
+    write(vault .. "/todo.md", "## Active\n")
+    vim.cmd("edit " .. vim.fn.fnameescape(vault .. "/todo.md"))
+    local notified = false
+    local orig = vim.notify
+    vim.notify = function(msg, _) if msg:find("no daily") then notified = true end end
+    require("kb.dashboard").jump_calendar_date_for("2026-04-28")
+    vim.notify = orig
+    assert.is_true(notified)
+    local name = vim.api.nvim_buf_get_name(0)
+    assert.is_true(name:match("todo%.md$") ~= nil, "expected todo.md; got " .. name)
+  end)
+end)
