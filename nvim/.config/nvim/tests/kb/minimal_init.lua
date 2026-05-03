@@ -11,3 +11,10 @@ vim.opt.rtp:prepend(plenary_path)
 vim.opt.rtp:prepend(vim.fn.fnamemodify(vim.fn.expand("<sfile>:p:h"), ":h:h"))
 
 require("plenary.busted")
+
+-- Define PlenaryBustedFile to run tests in-process (avoids rtp reset in child nvim).
+-- The default plugin/plenary.vim definition spawns a child nvim that inherits
+-- the user's init.lua, which overwrites the rtp set above.
+vim.api.nvim_create_user_command("PlenaryBustedFile", function(o)
+  require("plenary.busted").run(o.args)
+end, { nargs = 1, complete = "file" })

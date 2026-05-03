@@ -167,6 +167,76 @@ describe("kb.at.jump", function()
   end)
 end)
 
+describe("kb.at.parse_link", function()
+  it("parses [text](path) at cursor on text", function()
+    fresh_vault()
+    local at = require("kb.at")
+    local link = at.parse_link("see [docs](/foo/bar.md) here", 8)
+    assert.are.same({ text = "docs", path = "/foo/bar.md" }, link)
+  end)
+
+  it("parses [text](path) at cursor on path", function()
+    fresh_vault()
+    local at = require("kb.at")
+    local link = at.parse_link("see [docs](/foo/bar.md) here", 14)
+    assert.are.same({ text = "docs", path = "/foo/bar.md" }, link)
+  end)
+
+  it("returns nil when cursor is not on a link", function()
+    fresh_vault()
+    local at = require("kb.at")
+    assert.is_nil(at.parse_link("plain text", 4))
+  end)
+end)
+
+describe("kb.at.resolve_link", function()
+  it("resolves vault-rooted /foo.md", function()
+    local vault = fresh_vault()
+    local at = require("kb.at")
+    -- "current buffer" doesn't matter for rooted paths
+    local resolved = at.resolve_link({ path = "/projects/x.md" }, vault .. "/anywhere.md")
+    assert.are.equal(vault .. "/projects/x.md", resolved)
+  end)
+
+  it("resolves bare filename relative to current buffer", function()
+    local vault = fresh_vault()
+    local at = require("kb.at")
+    local resolved = at.resolve_link(
+      { path = "queries.md" },
+      vault .. "/domains/labeling/index.md"
+    )
+    assert.are.equal(vault .. "/domains/labeling/queries.md", resolved)
+  end)
+
+  it("resolves ../ paths", function()
+    local vault = fresh_vault()
+    local at = require("kb.at")
+    local resolved = at.resolve_link(
+      { path = "../labeling/queries.md" },
+      vault .. "/domains/pricing/index.md"
+    )
+    assert.are.equal(vault .. "/domains/labeling/queries.md", resolved)
+  end)
+
+  it("returns http URL as-is (caller handles ui.open)", function()
+    fresh_vault()
+    local at = require("kb.at")
+    local resolved = at.resolve_link({ path = "https://example.com" }, "/anywhere.md")
+    assert.are.equal("https://example.com", resolved)
+  end)
+
+  it("strips #anchor from the path for resolution", function()
+    local vault = fresh_vault()
+    local at = require("kb.at")
+    local resolved, anchor = at.resolve_link(
+      { path = "/projects/x.md#section" },
+      vault .. "/anywhere.md"
+    )
+    assert.are.equal(vault .. "/projects/x.md", resolved)
+    assert.are.equal("section", anchor)
+  end)
+end)
+
 local function stub_fzf_grep()
   local calls = { grep = {} }
   package.loaded["fzf-lua"] = {
