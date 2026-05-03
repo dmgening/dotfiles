@@ -89,3 +89,77 @@ describe("kb.index.entities", function()
     assert.is_not_nil(find_by_canonical(entries, "@domains/pricing"))
   end)
 end)
+
+describe("kb.index frontmatter", function()
+  local function find_by_canonical2(entries, canonical)
+    for _, e in ipairs(entries) do
+      if e.canonical == canonical then return e end
+    end
+    return nil
+  end
+
+  it("parses aliases (block list)", function()
+    local vault = fresh_vault()
+    write(vault .. "/people/peers/lena.md", table.concat({
+      "---",
+      "aliases:",
+      "  - lena",
+      "  - lp",
+      "---",
+      "",
+      "# Lena",
+    }, "\n"))
+    local index = require("kb.index")
+    local e = find_by_canonical2(index.entities(), "@people/peers/lena")
+    assert.are.same({ "lena", "lp" }, e.aliases)
+  end)
+
+  it("parses aliases (inline list)", function()
+    local vault = fresh_vault()
+    write(vault .. "/people/peers/yan.md", table.concat({
+      "---",
+      "aliases: [yan, yann]",
+      "---",
+    }, "\n"))
+    local index = require("kb.index")
+    local e = find_by_canonical2(index.entities(), "@people/peers/yan")
+    assert.are.same({ "yan", "yann" }, e.aliases)
+  end)
+
+  it("parses title", function()
+    local vault = fresh_vault()
+    write(vault .. "/projects/payments.md", table.concat({
+      "---",
+      "title: Payments Pipeline",
+      "---",
+    }, "\n"))
+    local index = require("kb.index")
+    local e = find_by_canonical2(index.entities(), "@projects/payments")
+    assert.are.equal("Payments Pipeline", e.title)
+  end)
+
+  it("handles missing frontmatter (no error, empty aliases, nil title)", function()
+    local vault = fresh_vault()
+    write(vault .. "/projects/anon.md", "no frontmatter here\n")
+    local index = require("kb.index")
+    local e = find_by_canonical2(index.entities(), "@projects/anon")
+    assert.are.same({}, e.aliases)
+    assert.is_nil(e.title)
+  end)
+
+  it("survives malformed frontmatter (unclosed)", function()
+    local vault = fresh_vault()
+    write(vault .. "/projects/broken.md", table.concat({
+      "---",
+      "title: bad",
+      "no closing",
+      "",
+      "# Body",
+    }, "\n"))
+    local index = require("kb.index")
+    local e = find_by_canonical2(index.entities(), "@projects/broken")
+    -- We tolerate it: entity is still indexed, frontmatter fields default.
+    assert.is_not_nil(e)
+    assert.are.same({}, e.aliases)
+  end)
+end)

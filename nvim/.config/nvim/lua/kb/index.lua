@@ -47,6 +47,68 @@ local function classify(abs_path, vault)
   return "@" .. rel, "entity", nil
 end
 
+-- Read the first frontmatter block (--- ... ---) at the very top of file.
+-- Returns { title = string?, aliases = { string, ... } } even on malformed input.
+local function parse_frontmatter(abs_path)
+  local out = { title = nil, aliases = {} }
+  local f = io.open(abs_path, "r")
+  if not f then return out end
+
+  local first = f:read("*l")
+  if first ~= "---" then
+    f:close()
+    return out
+  end
+
+  local lines = {}
+  while true do
+    local line = f:read("*l")
+    if line == nil then
+      -- EOF without closing ---: malformed, return defaults
+      f:close()
+      return { title = nil, aliases = {} }
+    end
+    if line == "---" then break end
+    table.insert(lines, line)
+  end
+  f:close()
+
+  local in_aliases_block = false
+  for _, line in ipairs(lines) do
+    if in_aliases_block then
+      local item = line:match("^%s*%-%s*(.+)%s*$")
+      if item then
+        table.insert(out.aliases, item)
+      else
+        in_aliases_block = false
+      end
+    end
+    if not in_aliases_block then
+      -- title: Foo
+      local title = line:match("^title:%s*(.-)%s*$")
+      if title and title ~= "" then
+        -- strip surrounding quotes if any
+        title = title:gsub('^"(.*)"$', "%1"):gsub("^'(.*)'$", "%1")
+        out.title = title
+      end
+      -- aliases: [a, b, c]   (inline)
+      local inline = line:match("^aliases:%s*%[(.-)%]%s*$")
+      if inline then
+        for item in inline:gmatch("([^,]+)") do
+          table.insert(out.aliases, (item:gsub("^%s+", ""):gsub("%s+$", "")))
+        end
+      else
+        -- aliases:    (block start)
+        if line:match("^aliases:%s*$") then
+          in_aliases_block = true
+        end
+      end
+    end
+  end
+
+  return out
+end
+
 local function build_entities()
   local vault = config.vault()
   local files = {}
@@ -56,12 +118,13 @@ local function build_entities()
   local entries = {}
   for _, abs in ipairs(files) do
     local canonical, kind, parent_canonical = classify(abs, vault)
+    local fm = parse_frontmatter(abs)
     table.insert(entries, {
       kind = kind,
       canonical = canonical,
       abs_path = abs,
-      aliases = {},
-      title = nil,
+      aliases = fm.aliases,
+      title = fm.title,
       parent_canonical = parent_canonical,
     })
   end
