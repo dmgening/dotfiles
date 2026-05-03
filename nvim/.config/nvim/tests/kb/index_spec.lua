@@ -210,3 +210,63 @@ describe("kb.index.refresh", function()
     assert.are.equal(2, #index.entities())
   end)
 end)
+
+describe("kb.index.refresh_file", function()
+  local function find_by_canonical3(entries, canonical)
+    for _, e in ipairs(entries) do
+      if e.canonical == canonical then return e end
+    end
+    return nil
+  end
+
+  it("updates an existing entry's frontmatter", function()
+    local vault = fresh_vault()
+    local p = vault .. "/projects/x.md"
+    write(p, "---\ntitle: Old\n---\n")
+    local index = require("kb.index")
+    assert.are.equal("Old", find_by_canonical3(index.entities(), "@projects/x").title)
+    write(p, "---\ntitle: New\n---\n")
+    index.refresh_file(p)
+    assert.are.equal("New", find_by_canonical3(index.entities(), "@projects/x").title)
+  end)
+
+  it("inserts a new entry when a new file is saved", function()
+    local vault = fresh_vault()
+    local index = require("kb.index")
+    assert.are.equal(0, #index.entities())
+    local p = vault .. "/projects/new.md"
+    write(p, "")
+    index.refresh_file(p)
+    assert.is_not_nil(find_by_canonical3(index.entities(), "@projects/new"))
+  end)
+
+  it("merges new tags from the saved file into the global set", function()
+    local vault = fresh_vault()
+    local p = vault .. "/projects/x.md"
+    write(p, "no tags yet")
+    local index = require("kb.index")
+    assert.are.same({}, index.tags())
+    write(p, "now we have #fresh")
+    index.refresh_file(p)
+    assert.are.same({ "#fresh" }, index.tags())
+  end)
+
+  it("drops a tag when no file references it after save", function()
+    local vault = fresh_vault()
+    local p = vault .. "/projects/x.md"
+    write(p, "#disappearing")
+    local index = require("kb.index")
+    assert.are.same({ "#disappearing" }, index.tags())
+    write(p, "gone")
+    index.refresh_file(p)
+    assert.are.same({}, index.tags())
+  end)
+
+  it("ignores files outside the vault", function()
+    fresh_vault()
+    local index = require("kb.index")
+    -- Should not error, should not change state.
+    index.refresh_file("/tmp/random/elsewhere.md")
+    assert.are.same({}, index.entities())
+  end)
+end)

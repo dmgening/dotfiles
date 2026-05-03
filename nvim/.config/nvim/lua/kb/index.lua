@@ -197,4 +197,91 @@ function M.refresh()
   cache.per_file_tags = {}
 end
 
+-- Scan a single file for tags (used by refresh_file).
+local function tags_in_file(abs_path)
+  local result = {}
+  local f = io.open(abs_path, "r")
+  if not f then return result end
+  local content = f:read("*a")
+  f:close()
+  -- Lua patterns can't do PCRE lookahead, so iterate manually.
+  local i = 1
+  while true do
+    local s, e = content:find("#%a[%w/_%-]*", i)
+    if not s then break end
+    local before = s > 1 and content:sub(s - 1, s - 1) or ""
+    if before == "" or not before:match("[%w_]") then
+      result[content:sub(s, e)] = true
+    end
+    i = e + 1
+  end
+  return result
+end
+
+function M.refresh_file(abs_path)
+  if not abs_path then return end
+  local vault = config.vault()
+  if not vim.startswith(abs_path, vault .. "/") then return end
+
+  -- Make sure caches are populated before we mutate them.
+  M.entities()
+  M.tags()
+
+  -- ENTITY UPDATE
+  -- Determine if this path is in an axis (people/projects/domains).
+  local rel = abs_path:sub(#vault + 2)
+  local axis = rel:match("^([^/]+)/")
+  local in_axis = false
+  for _, a in ipairs(AXES) do
+    if a == axis then in_axis = true end
+  end
+
+  if in_axis then
+    local canonical, kind, parent_canonical = classify(abs_path, vault)
+    local fm = parse_frontmatter(abs_path)
+    local found = false
+    for i_, e in ipairs(cache.entities) do
+      if e.abs_path == abs_path then
+        cache.entities[i_] = {
+          kind = kind,
+          canonical = canonical,
+          abs_path = abs_path,
+          aliases = fm.aliases,
+          title = fm.title,
+          parent_canonical = parent_canonical,
+        }
+        found = true
+        break
+      end
+    end
+    if not found then
+      table.insert(cache.entities, {
+        kind = kind,
+        canonical = canonical,
+        abs_path = abs_path,
+        aliases = fm.aliases,
+        title = fm.title,
+        parent_canonical = parent_canonical,
+      })
+    end
+  end
+
+  -- TAG UPDATE
+  local new_tags = tags_in_file(abs_path)
+  cache.per_file_tags[abs_path] = new_tags
+
+  -- Rebuild global tag set from per_file_tags
+  local set = {}
+  for _, file_tags in pairs(cache.per_file_tags) do
+    for tag in pairs(file_tags) do
+      set[tag] = true
+    end
+  end
+  local out = {}
+  for tag in pairs(set) do
+    table.insert(out, tag)
+  end
+  cache.tags = out
+end
+
 return M
