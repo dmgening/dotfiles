@@ -28,6 +28,11 @@ local function define_commands()
   vim.api.nvim_create_user_command("KbAtBacklinks", function()
     require("kb.at").backlinks()
   end, { desc = "Show all references to @-mention under cursor" })
+
+  vim.api.nvim_create_user_command("KbReindex", function()
+    require("kb.index").refresh()
+    vim.notify("[kb] index refreshed", vim.log.levels.INFO)
+  end, { desc = "Rebuild kb entity + tag index" })
 end
 
 local function define_keymaps()
@@ -70,7 +75,16 @@ local function define_autocmds()
     end,
   })
 
-  -- Buffer-local gd/gr in vault files: jump to @-mention / show backlinks.
+  -- Save-time refresh of the entity + tag index.
+  vim.api.nvim_create_autocmd("BufWritePost", {
+    group = group,
+    pattern = config.vault() .. "/**/*.md",
+    callback = function(args)
+      require("kb.index").refresh_file(args.file)
+    end,
+  })
+
+  -- Buffer-local gd/gr in vault files: jump to @-mention or markdown link / show backlinks.
   -- NOTE: gd/gr are buffer-local. If you later attach a markdown LSP
   -- (e.g., marksman, ltex), it may set its own gd/gr mappings via LspAttach.
   -- The order is: kb's BufEnter fires first, LspAttach fires later, so LSP wins
@@ -81,10 +95,39 @@ local function define_autocmds()
       if not in_vault(args.file) then return end
       vim.keymap.set("n", "gd", function()
         require("kb.at").jump()
-      end, { buffer = args.buf, desc = "kb: jump to @-mention" })
+      end, { buffer = args.buf, desc = "kb: jump to @-mention or link" })
       vim.keymap.set("n", "gr", function()
         require("kb.at").backlinks()
       end, { buffer = args.buf, desc = "kb: backlinks for @-mention" })
+    end,
+  })
+
+  -- Attach kb + luasnip cmp sources to vault buffers (and buffers flagged via b:kb_in_vault).
+  vim.api.nvim_create_autocmd("BufEnter", {
+    group = group,
+    callback = function(args)
+      local in_vault_path = in_vault(args.file)
+      local flagged = vim.b[args.buf].kb_in_vault == 1
+      if not (in_vault_path or flagged) then return end
+      local ok, cmp = pcall(require, "cmp")
+      if not ok then return end
+      cmp.setup.buffer({
+        sources = cmp.config.sources({
+          { name = "kb" },
+          { name = "luasnip" },
+          { name = "buffer" },
+          { name = "path" },
+        }),
+      })
+    end,
+  })
+
+  -- Engage the modal todo buffer when todo.md is opened.
+  vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
+    group = group,
+    pattern = config.vault() .. "/todo.md",
+    callback = function(args)
+      require("kb.todo_modal").attach(args.buf)
     end,
   })
 end

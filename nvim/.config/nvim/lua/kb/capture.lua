@@ -6,6 +6,7 @@ local function open_floating_scratch()
   vim.bo[buf].bufhidden = "wipe"
   vim.bo[buf].swapfile = false
   vim.bo[buf].filetype = "markdown"
+  vim.b[buf].kb_in_vault = 1
 
   local width = math.floor(vim.o.columns * 0.6)
   local height = math.floor(vim.o.lines * 0.4)
