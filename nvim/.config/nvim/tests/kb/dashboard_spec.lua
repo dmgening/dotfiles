@@ -79,3 +79,44 @@ describe("kb.dashboard.due_dates", function()
     assert.are.same({ "2026-06-01" }, got)
   end)
 end)
+
+describe("kb.dashboard.open", function()
+  before_each(function()
+    -- Close any leftover dashboard tabs from prior tests.
+    while vim.fn.tabpagenr("$") > 1 do vim.cmd("tabclose") end
+  end)
+
+  it("opens a new tab with two windows; left shows todo.md", function()
+    local vault = fresh_vault()
+    write(vault .. "/todo.md", "## Active\n")
+    -- Stub :Calendar so the test doesn't depend on calendar-vim.
+    vim.api.nvim_create_user_command("Calendar", function() vim.cmd("rightbelow vsplit | enew") end, { nargs = "*" })
+    require("kb.dashboard").open()
+    assert.are.equal(2, #vim.api.nvim_tabpage_list_wins(0))
+    local left_win = vim.api.nvim_tabpage_list_wins(0)[1]
+    local left_buf = vim.api.nvim_win_get_buf(left_win)
+    local name = vim.api.nvim_buf_get_name(left_buf)
+    assert.is_true(name:match("todo%.md$") ~= nil)
+    pcall(vim.api.nvim_del_user_command, "Calendar")
+  end)
+end)
+
+describe("kb.dashboard.toggle_left", function()
+  it("swaps the left buffer between todo.md and today's daily", function()
+    local vault = fresh_vault()
+    write(vault .. "/todo.md", "## Active\n")
+    -- Stub :Calendar so the test doesn't depend on calendar-vim.
+    vim.api.nvim_create_user_command("Calendar", function() vim.cmd("rightbelow vsplit | enew") end, { nargs = "*" })
+    require("kb.dashboard").open()
+    -- Move to left window
+    local left_win = vim.api.nvim_tabpage_list_wins(0)[1]
+    vim.api.nvim_set_current_win(left_win)
+    require("kb.dashboard").toggle_left()
+    local name = vim.api.nvim_buf_get_name(0)
+    assert.is_true(name:match("daily/%d%d%d%d%-%d%d%-%d%d%.md$") ~= nil, "expected today's daily, got " .. name)
+    require("kb.dashboard").toggle_left()
+    name = vim.api.nvim_buf_get_name(0)
+    assert.is_true(name:match("todo%.md$") ~= nil, "expected todo.md, got " .. name)
+    pcall(vim.api.nvim_del_user_command, "Calendar")
+  end)
+end)

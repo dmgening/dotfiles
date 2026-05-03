@@ -45,4 +45,38 @@ function M.due_dates()
   return out
 end
 
+-- Open the dashboard tab. Left = todo.md (~70%), right = year calendar.
+function M.open()
+  local todo_path = config.vault() .. "/todo.md"
+  -- Ensure todo.md exists (so :edit doesn't create an empty unnamed buffer).
+  if vim.fn.filereadable(todo_path) ~= 1 then
+    vim.fn.mkdir(vim.fn.fnamemodify(todo_path, ":h"), "p")
+    vim.fn.writefile({ "# TODO", "", "## Active", "", "## Waiting", "", "## Someday", "", "## Done", "" }, todo_path)
+  end
+  vim.cmd("tabnew " .. vim.fn.fnameescape(todo_path))
+  vim.cmd("vertical rightbelow Calendar -view=year")
+  -- Resize right pane to ~30% of total columns.
+  local right_win = vim.api.nvim_get_current_win()
+  vim.api.nvim_win_set_width(right_win, math.floor(vim.o.columns * 0.3))
+  -- Set buffer-local 't' on the left window.
+  local left_win = vim.api.nvim_tabpage_list_wins(0)[1]
+  local left_buf = vim.api.nvim_win_get_buf(left_win)
+  vim.keymap.set("n", "t", function() M.toggle_left() end, { buffer = left_buf, desc = "kb dashboard: toggle todo/daily" })
+end
+
+function M.toggle_left()
+  local config_mod = require("kb.config")
+  local todo_path = config_mod.vault() .. "/todo.md"
+  local current = vim.api.nvim_buf_get_name(0)
+  if vim.fn.resolve(vim.fn.fnamemodify(current, ":p")) == vim.fn.resolve(vim.fn.fnamemodify(todo_path, ":p")) then
+    -- Currently on todo → switch to today's daily (creates if missing).
+    require("kb.daily").open_today()
+    -- Re-bind 't' on the new buffer.
+    vim.keymap.set("n", "t", function() M.toggle_left() end, { buffer = 0, desc = "kb dashboard: toggle todo/daily" })
+  else
+    vim.cmd("edit " .. vim.fn.fnameescape(todo_path))
+    vim.keymap.set("n", "t", function() M.toggle_left() end, { buffer = 0, desc = "kb dashboard: toggle todo/daily" })
+  end
+end
+
 return M
