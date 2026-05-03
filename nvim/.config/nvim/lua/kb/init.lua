@@ -116,6 +116,18 @@ local function define_autocmds()
       vim.keymap.set("n", "gr", function()
         require("kb.at").backlinks()
       end, { buffer = args.buf, nowait = true, desc = "kb: backlinks for @-mention or #tag" })
+
+      -- Image-paste interception in vault markdown buffers.
+      if vim.bo[args.buf].filetype == "markdown" then
+        for _, key in ipairs({ "p", "P" }) do
+          vim.keymap.set("n", key, function()
+            require("kb.images").paste_or_fallthrough(key)
+          end, { buffer = args.buf, desc = "kb: paste image or default paste" })
+        end
+        vim.keymap.set("i", "<C-r>+", function()
+          require("kb.images").paste_or_fallthrough("<C-r>+")
+        end, { buffer = args.buf, desc = "kb: paste image (insert mode) or default" })
+      end
     end,
   })
 
@@ -160,6 +172,34 @@ local function define_autocmds()
         if ok and dashboard.rebuild_marks then
           pcall(dashboard.rebuild_marks)
         end
+      end
+    end,
+  })
+
+  -- Image-paste lifecycle: migrate referenced tmps to vault/images on save,
+  -- sweep unreferenced tmps on save, sweep all pending tmps on unload/exit.
+  vim.api.nvim_create_autocmd("BufWritePre", {
+    group = group,
+    pattern = config.vault() .. "/**/*.md",
+    callback = function(args)
+      require("kb.images").on_buf_write_pre(args.buf)
+    end,
+  })
+
+  vim.api.nvim_create_autocmd("BufUnload", {
+    group = group,
+    callback = function(args)
+      if package.loaded["kb.images"] then
+        require("kb.images").on_buf_unload(args.buf)
+      end
+    end,
+  })
+
+  vim.api.nvim_create_autocmd("VimLeavePre", {
+    group = group,
+    callback = function()
+      if package.loaded["kb.images"] then
+        require("kb.images").cleanup_all()
       end
     end,
   })
