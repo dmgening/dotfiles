@@ -90,6 +90,8 @@ local function define_autocmds()
   })
 
   -- Buffer-local gd/gr in vault files: jump to @-mention or markdown link / show backlinks.
+  -- nowait=true so they fire immediately without waiting on the global
+  -- LSP-default longer prefixes (gra/gri/grn/grr in nvim 0.11+, plus gD).
   -- NOTE: gd/gr are buffer-local. If you later attach a markdown LSP
   -- (e.g., marksman, ltex), it may set its own gd/gr mappings via LspAttach.
   -- The order is: kb's BufEnter fires first, LspAttach fires later, so LSP wins
@@ -100,10 +102,10 @@ local function define_autocmds()
       if not in_vault(args.file) then return end
       vim.keymap.set("n", "gd", function()
         require("kb.at").jump()
-      end, { buffer = args.buf, desc = "kb: jump to @-mention or link" })
+      end, { buffer = args.buf, nowait = true, desc = "kb: jump to @-mention or link" })
       vim.keymap.set("n", "gr", function()
         require("kb.at").backlinks()
-      end, { buffer = args.buf, desc = "kb: backlinks for @-mention" })
+      end, { buffer = args.buf, nowait = true, desc = "kb: backlinks for @-mention or #tag" })
     end,
   })
 

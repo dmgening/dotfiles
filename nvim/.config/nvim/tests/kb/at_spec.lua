@@ -346,3 +346,81 @@ describe("kb.at.jump stub creation", function()
     assert.are.equal(0, vim.fn.filereadable(vault .. "/projects/no-thanks.md"))
   end)
 end)
+
+describe("kb.at.parse_tag", function()
+  it("parses #urgent at cursor", function()
+    fresh_vault()
+    local at = require("kb.at")
+    -- "see #urgent now"
+    --  1234567890123456
+    -- '#' at col 5; cursor anywhere in 5..11 should match
+    local t = at.parse_tag("see #urgent now", 6)
+    assert.are.same({ tag = "urgent", raw = "#urgent" }, t)
+  end)
+
+  it("parses hierarchical #followup/manager", function()
+    fresh_vault()
+    local at = require("kb.at")
+    local t = at.parse_tag("ping #followup/manager today", 8)
+    assert.are.same({ tag = "followup/manager", raw = "#followup/manager" }, t)
+  end)
+
+  it("parses tag at start of line", function()
+    fresh_vault()
+    local at = require("kb.at")
+    local t = at.parse_tag("#blocked because of X", 1)
+    assert.are.same({ tag = "blocked", raw = "#blocked" }, t)
+  end)
+
+  it("rejects # preceded by alphanumeric (e.g. abc#notatag)", function()
+    fresh_vault()
+    local at = require("kb.at")
+    -- cursor on the # in `abc#notatag`
+    assert.is_nil(at.parse_tag("see abc#notatag here", 8))
+  end)
+
+  it("returns nil when cursor is not on a tag", function()
+    fresh_vault()
+    local at = require("kb.at")
+    assert.is_nil(at.parse_tag("plain text only", 4))
+  end)
+
+  it("rejects # followed by digit (per index regex: alpha-first)", function()
+    fresh_vault()
+    local at = require("kb.at")
+    assert.is_nil(at.parse_tag("see #123 here", 6))
+  end)
+end)
+
+describe("kb.at.backlinks dispatch", function()
+  it("invokes fzf-lua grep with tag.raw when cursor is on #tag", function()
+    fresh_vault()
+    -- Stub fzf-lua to capture the search string
+    local captured = nil
+    package.loaded["fzf-lua"] = {
+      grep = function(opts) captured = opts end,
+    }
+    vim.cmd("enew")
+    vim.api.nvim_buf_set_lines(0, 0, -1, false, { "see #urgent today" })
+    vim.api.nvim_win_set_cursor(0, { 1, 5 })
+    require("kb.at").backlinks()
+    assert.is_not_nil(captured)
+    assert.are.equal("#urgent", captured.search)
+    package.loaded["fzf-lua"] = nil
+  end)
+
+  it("falls back to @-mention search when no tag under cursor", function()
+    fresh_vault()
+    local captured = nil
+    package.loaded["fzf-lua"] = {
+      grep = function(opts) captured = opts end,
+    }
+    vim.cmd("enew")
+    vim.api.nvim_buf_set_lines(0, 0, -1, false, { "see @projects/x today" })
+    vim.api.nvim_win_set_cursor(0, { 1, 5 })
+    require("kb.at").backlinks()
+    assert.is_not_nil(captured)
+    assert.are.equal("@projects/x", captured.search)
+    package.loaded["fzf-lua"] = nil
+  end)
+end)

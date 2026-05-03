@@ -147,12 +147,45 @@ function M.jump()
   vim.cmd("edit " .. vim.fn.fnameescape(p))
 end
 
+-- Parse a #tag at cursor. Same boundary rules as the index scanner: char
+-- before # must not be alphanumeric/underscore (so `abc#notatag` is rejected
+-- but ` #realtag`, `(#realtag)`, start-of-line all match). Tag must start
+-- with a letter; allowed chars are letters, digits, /, _, -.
+-- Returns { tag, raw } or nil. (`tag` is the bare identifier without `#`,
+-- `raw` is the full `#tag` for searching.)
+function M.parse_tag(line, col)
+  if not line or not col then return nil end
+  local i = 1
+  while true do
+    local s, e = line:find("#%a[%w/_%-]*", i)
+    if not s then return nil end
+    local before = s > 1 and line:sub(s - 1, s - 1) or ""
+    if before == "" or not before:match("[%w_]") then
+      if col >= s and col <= e then
+        return { tag = line:sub(s + 1, e), raw = line:sub(s, e) }
+      end
+    end
+    i = e + 1
+  end
+end
+
 function M.backlinks()
   local line = vim.api.nvim_get_current_line()
   local col = vim.api.nvim_win_get_cursor(0)[2] + 1
+  -- Try #tag first (more specific — tags can appear inside text that also
+  -- happens to look like an @-mention prefix).
+  local tag = M.parse_tag(line, col)
+  if tag then
+    require("fzf-lua").grep({
+      cwd = config.vault(),
+      search = tag.raw,
+      no_esc = true,
+    })
+    return
+  end
   local mention = M.parse(line, col)
   if not mention then
-    notify("no @-mention under cursor")
+    notify("no @-mention or #tag under cursor")
     return
   end
   require("fzf-lua").grep({
