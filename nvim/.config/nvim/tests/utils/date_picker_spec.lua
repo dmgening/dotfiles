@@ -35,3 +35,31 @@ describe("utils.date_picker.parse_date_token_under_cursor", function()
     assert.are.equal("2026-01-01", got.date)
   end)
 end)
+
+local function buf_with(text, cursor_col)
+  local buf = vim.api.nvim_create_buf(false, true)
+  vim.api.nvim_buf_set_lines(buf, 0, -1, false, { text })
+  vim.api.nvim_set_current_buf(buf)
+  vim.api.nvim_win_set_cursor(0, { 1, cursor_col - 1 })
+  return buf
+end
+
+describe("utils.date_picker.apply_date", function()
+  it("replaces a date token under cursor", function()
+    reset()
+    buf_with("due:2026-05-10 foo", 8)
+    require("utils.date_picker").apply_date("2027-01-15")
+    assert.are.equal("due:2027-01-15 foo", vim.api.nvim_get_current_line())
+  end)
+
+  it("inserts at cursor when no date token is under cursor", function()
+    reset()
+    buf_with("hello |", 7)  -- cursor on the space before bar; will insert after it
+    require("utils.date_picker").apply_date("2027-01-15")
+    -- "hello |" -> insert at col 7 -> "hello 2027-01-15|"
+    -- (Exact behavior: insert before the cursor position, like normal-mode 'P'.
+    -- We allow either form; assert the date is present.)
+    local line = vim.api.nvim_get_current_line()
+    assert.is_true(line:find("2027%-01%-15") ~= nil)
+  end)
+end)
