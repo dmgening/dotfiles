@@ -165,3 +165,25 @@ describe("kb.dashboard.rebuild_marks", function()
     assert.are.equal("", unmarked)
   end)
 end)
+
+describe("kb.dashboard.help", function()
+  it("opens a floating window with help text", function()
+    local before = #vim.api.nvim_list_wins()
+    require("kb.dashboard").help()
+    local after = #vim.api.nvim_list_wins()
+    assert.are.equal(before + 1, after)
+    -- Find the new (floating) window.
+    local float_win
+    for _, w in ipairs(vim.api.nvim_list_wins()) do
+      local cfg = vim.api.nvim_win_get_config(w)
+      if cfg.relative ~= "" then float_win = w end
+    end
+    assert.is_not_nil(float_win)
+    local buf = vim.api.nvim_win_get_buf(float_win)
+    local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+    local joined = table.concat(lines, "\n")
+    assert.is_true(joined:find("toggle") ~= nil)
+    -- Cleanup.
+    vim.api.nvim_win_close(float_win, true)
+  end)
+end)

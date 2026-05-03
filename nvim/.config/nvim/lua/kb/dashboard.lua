@@ -60,6 +60,8 @@ function M.open()
     buffer = 0,
     desc = "kb dashboard: open daily for date under cursor",
   })
+  vim.keymap.set("n", "?", function() M.help() end, { buffer = 0, desc = "kb dashboard: help" })
+  vim.keymap.set("n", "q", function() vim.cmd("tabclose") end, { buffer = 0, desc = "kb dashboard: close" })
   -- Resize right pane to ~30% of total columns.
   local right_win = vim.api.nvim_get_current_win()
   vim.api.nvim_win_set_width(right_win, math.floor(vim.o.columns * 0.3))
@@ -144,6 +146,51 @@ function M.rebuild_marks()
         end
       end
     end
+  end
+end
+
+local HELP_LINES = {
+  "  kb dashboard ",
+  "",
+  "  Left pane:",
+  "    t           toggle todo ⇄ today's daily",
+  "",
+  "  Calendar pane:",
+  "    <CR>        open daily for date under cursor (if it exists)",
+  "    ?           this help",
+  "    q           close dashboard",
+  "",
+  "  Press any key to close this panel.",
+}
+
+function M.help()
+  local buf = vim.api.nvim_create_buf(false, true)
+  vim.api.nvim_buf_set_lines(buf, 0, -1, false, HELP_LINES)
+  vim.bo[buf].buftype = "nofile"
+  vim.bo[buf].bufhidden = "wipe"
+  vim.bo[buf].modifiable = false
+  local width = 0
+  for _, l in ipairs(HELP_LINES) do
+    if #l > width then width = #l end
+  end
+  width = width + 2
+  local height = #HELP_LINES
+  local win = vim.api.nvim_open_win(buf, true, {
+    relative = "editor",
+    width = width,
+    height = height,
+    row = math.floor((vim.o.lines - height) / 2),
+    col = math.floor((vim.o.columns - width) / 2),
+    style = "minimal",
+    border = "rounded",
+    title = " kb dashboard help ",
+    title_pos = "center",
+  })
+  -- Any key closes the float.
+  vim.keymap.set("n", "<buffer>", function() vim.api.nvim_win_close(win, true) end, { buffer = buf })
+  -- Common keys explicitly.
+  for _, k in ipairs({ "<Esc>", "q", "<CR>", "?" }) do
+    vim.keymap.set("n", k, function() vim.api.nvim_win_close(win, true) end, { buffer = buf, nowait = true })
   end
 end
 
