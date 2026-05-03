@@ -52,4 +52,51 @@ function M.pending_for(buf)
   return M.pending[buf] or {}
 end
 
+-- Returns the next available vault/images/<basename>.png with a numeric suffix
+-- if collisions exist (-1, -2, ...).
+local function unique_vault_path()
+  local stamp = os.date("%Y-%m-%d-%H%M%S")
+  local dir = config.vault() .. "/images"
+  vim.fn.mkdir(dir, "p")
+  local p = dir .. "/" .. stamp .. ".png"
+  if vim.fn.filereadable(p) ~= 1 then return p, stamp .. ".png" end
+  local n = 1
+  while true do
+    local cand = dir .. "/" .. stamp .. "-" .. n .. ".png"
+    if vim.fn.filereadable(cand) ~= 1 then return cand, stamp .. "-" .. n .. ".png" end
+    n = n + 1
+  end
+end
+
+function M.on_buf_write_pre(buf)
+  local tmps = M.pending[buf]
+  if not tmps or #tmps == 0 then return end
+  local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+  local new_lines = vim.deepcopy(lines)
+  local mutated = false
+  for _, tmp in ipairs(tmps) do
+    local needle = "file://" .. tmp
+    local referenced = false
+    for i, l in ipairs(new_lines) do
+      if l:find(needle, 1, true) then
+        referenced = true
+        if not mutated then
+          -- Defer the actual swap until we know the new path.
+        end
+        local vault_path, basename = unique_vault_path()
+        os.rename(tmp, vault_path)
+        new_lines[i] = (l:gsub(vim.pesc(needle), "/images/" .. basename))
+        mutated = true
+      end
+    end
+    if not referenced then
+      if vim.fn.filereadable(tmp) == 1 then vim.fn.delete(tmp) end
+    end
+  end
+  if mutated then
+    vim.api.nvim_buf_set_lines(buf, 0, -1, false, new_lines)
+  end
+  M.pending[buf] = {}
+end
+
 return M

@@ -50,3 +50,47 @@ describe("kb.images.paste_or_fallthrough", function()
     assert.is_true(line:find("XYZ") ~= nil)
   end)
 end)
+
+describe("kb.images.on_buf_write_pre", function()
+  it("migrates referenced tmps to vault/images and rewrites the link", function()
+    local vault = fresh_vault()
+    local md = vault .. "/file.md"
+    vim.fn.writefile({ "" }, md)
+    vim.cmd("edit " .. vim.fn.fnameescape(md))
+    local images = require("kb.images")
+    -- Set up a pending tmp + buffer line referencing it.
+    local tmp = "/tmp/kb-paste-test1.png"
+    vim.fn.writefile({ "fake" }, tmp)
+    images.pending[vim.api.nvim_get_current_buf()] = { tmp }
+    vim.api.nvim_buf_set_lines(0, 0, -1, false, { "before ![](file://" .. tmp .. ") after" })
+    -- Trigger the pre-write hook.
+    images.on_buf_write_pre(vim.api.nvim_get_current_buf())
+    -- Buffer line should be rewritten to /images/<...>.png form.
+    local line = vim.api.nvim_get_current_line()
+    assert.is_true(line:match("!%[%]%(/images/[^)]+%.png%)") ~= nil, "got: " .. line)
+    -- Tmp should no longer exist; vault image should.
+    assert.are.equal(0, vim.fn.filereadable(tmp))
+    -- Find the new vault image filename from the buffer line.
+    local new_name = line:match("!%[%]%(/images/([^)]+)%)")
+    assert.is_not_nil(new_name)
+    assert.are.equal(1, vim.fn.filereadable(vault .. "/images/" .. new_name))
+    -- Pending registry should be empty for this buffer.
+    assert.are.same({}, images.pending_for(vim.api.nvim_get_current_buf()))
+  end)
+
+  it("removes tmps that are no longer referenced (deleted from buffer)", function()
+    local vault = fresh_vault()
+    local md = vault .. "/file.md"
+    vim.fn.writefile({ "" }, md)
+    vim.cmd("edit " .. vim.fn.fnameescape(md))
+    local images = require("kb.images")
+    local tmp = "/tmp/kb-paste-test2.png"
+    vim.fn.writefile({ "fake" }, tmp)
+    images.pending[vim.api.nvim_get_current_buf()] = { tmp }
+    -- Buffer does NOT reference the tmp (user deleted the link).
+    vim.api.nvim_buf_set_lines(0, 0, -1, false, { "no link here" })
+    images.on_buf_write_pre(vim.api.nvim_get_current_buf())
+    assert.are.equal(0, vim.fn.filereadable(tmp))
+    assert.are.same({}, images.pending_for(vim.api.nvim_get_current_buf()))
+  end)
+end)
