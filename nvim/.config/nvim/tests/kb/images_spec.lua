@@ -94,3 +94,33 @@ describe("kb.images.on_buf_write_pre", function()
     assert.are.same({}, images.pending_for(vim.api.nvim_get_current_buf()))
   end)
 end)
+
+describe("kb.images.on_buf_unload", function()
+  it("removes any still-pending tmps for that buffer", function()
+    fresh_vault()
+    local images = require("kb.images")
+    local tmp = "/tmp/kb-paste-test3.png"
+    vim.fn.writefile({ "fake" }, tmp)
+    local buf = vim.api.nvim_create_buf(false, true)
+    images.pending[buf] = { tmp }
+    images.on_buf_unload(buf)
+    assert.are.equal(0, vim.fn.filereadable(tmp))
+    assert.is_nil(images.pending[buf])
+  end)
+end)
+
+describe("kb.images.cleanup_all", function()
+  it("removes pending tmps across all buffers", function()
+    fresh_vault()
+    local images = require("kb.images")
+    local tmp1 = "/tmp/kb-paste-t1.png"
+    local tmp2 = "/tmp/kb-paste-t2.png"
+    vim.fn.writefile({ "" }, tmp1)
+    vim.fn.writefile({ "" }, tmp2)
+    images.pending = { [99] = { tmp1 }, [100] = { tmp2 } }
+    images.cleanup_all()
+    assert.are.equal(0, vim.fn.filereadable(tmp1))
+    assert.are.equal(0, vim.fn.filereadable(tmp2))
+    assert.are.same({}, images.pending)
+  end)
+end)

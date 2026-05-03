@@ -99,4 +99,22 @@ function M.on_buf_write_pre(buf)
   M.pending[buf] = {}
 end
 
+function M.on_buf_unload(buf)
+  local tmps = M.pending[buf]
+  if not tmps then return end
+  for _, tmp in ipairs(tmps) do
+    if vim.fn.filereadable(tmp) == 1 then vim.fn.delete(tmp) end
+  end
+  M.pending[buf] = nil
+end
+
+function M.cleanup_all()
+  for _, tmps in pairs(M.pending) do
+    for _, tmp in ipairs(tmps) do
+      if vim.fn.filereadable(tmp) == 1 then vim.fn.delete(tmp) end
+    end
+  end
+  M.pending = {}
+end
+
 return M
