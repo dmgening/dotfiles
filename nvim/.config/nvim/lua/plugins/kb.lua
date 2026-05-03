@@ -1,14 +1,6 @@
 return {
-  -- Keybinding hint tree for <leader>k
-  {
-    "folke/which-key.nvim",
-    event = "VeryLazy",
-    opts = {
-      preset = "modern",
-    },
-  },
-
-  -- Test-only dependency. Lazy-loaded so it doesn't impact runtime.
+  -- Test-only dependency for plenary.busted. Loaded directly by the test
+  -- harness via rtp prepend; lazy in normal nvim sessions.
   {
     "nvim-lua/plenary.nvim",
     lazy = true,
