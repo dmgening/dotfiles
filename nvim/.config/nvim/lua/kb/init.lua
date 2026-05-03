@@ -51,6 +51,12 @@ local function define_keymaps()
   map("<leader>kf", "<cmd>KbFind<cr>", "Find files")
   map("<leader>kg", "<cmd>KbGrep<cr>", "Grep vault")
 
+  -- Date picker is vault-agnostic but registered here for convenience —
+  -- kb.init is the only setup() reliably called at startup.
+  vim.keymap.set("n", "<leader>Pd", function()
+    require("utils.date_picker").pick()
+  end, { desc = "Date picker (replace/insert YYYY-MM-DD)" })
+
   local ok, wk = pcall(require, "which-key")
   if ok then
     wk.add({
