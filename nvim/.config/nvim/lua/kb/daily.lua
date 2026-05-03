@@ -29,4 +29,37 @@ function M.ensure(date)
   return p
 end
 
+function M.append_section(text, date)
+  local d = date_or_today(date)
+  local p = M.ensure(d)
+  local existing = vim.fn.readfile(p)
+  local hhmm = os.date("%H:%M")
+
+  local new_lines = vim.deepcopy(existing)
+  if #new_lines == 0 or new_lines[#new_lines] ~= "" then
+    table.insert(new_lines, "")
+  end
+  table.insert(new_lines, "## " .. hhmm)
+  table.insert(new_lines, "")
+  for line in (text .. "\n"):gmatch("([^\n]*)\n") do
+    table.insert(new_lines, line)
+  end
+  while #new_lines > 0 and new_lines[#new_lines] == "" do
+    table.remove(new_lines)
+  end
+  table.insert(new_lines, "")
+
+  vim.fn.writefile(new_lines, p)
+
+  require("kb.todo").sync(p)
+
+  return p
+end
+
+function M.open_today()
+  local p = M.ensure()
+  vim.cmd("edit " .. vim.fn.fnameescape(p))
+  return p
+end
+
 return M

@@ -4,6 +4,7 @@ local function fresh_vault()
   _G.KB_VAULT_OVERRIDE = tmp
   package.loaded["kb.config"] = nil
   package.loaded["kb.daily"] = nil
+  package.loaded["kb.todo"] = nil
   return tmp
 end
 
@@ -55,5 +56,58 @@ describe("kb.daily.ensure", function()
     local daily = require("kb.daily")
     daily.ensure("2026-05-03")
     assert.are.same({ "EXISTING CONTENT" }, vim.fn.readfile(p))
+  end)
+end)
+
+describe("kb.daily.append_section", function()
+  it("appends ## HH:MM section to today's daily and creates the file if missing", function()
+    local vault = fresh_vault()
+    local daily = require("kb.daily")
+    local p = daily.append_section("a thought", "2026-05-03")
+    assert.are.equal(vault .. "/daily/2026-05-03.md", p)
+    local lines = vim.fn.readfile(p)
+    local found_section_header = false
+    local found_content = false
+    for _, l in ipairs(lines) do
+      if l:match("^## %d%d:%d%d$") then found_section_header = true end
+      if l == "a thought" then found_content = true end
+    end
+    assert.is_true(found_section_header)
+    assert.is_true(found_content)
+  end)
+
+  it("preserves prior content when appending", function()
+    local vault = fresh_vault()
+    local daily = require("kb.daily")
+    daily.append_section("first")
+    daily.append_section("second")
+    local lines = vim.fn.readfile(daily.path())
+    local count = 0
+    for _, l in ipairs(lines) do
+      if l:match("^## %d%d:%d%d$") then count = count + 1 end
+    end
+    assert.are.equal(2, count)
+  end)
+
+  it("calls todo.sync after appending", function()
+    local vault = fresh_vault()
+    local daily = require("kb.daily")
+    daily.append_section("- [ ] new task from capture")
+    local todo_lines = vim.fn.readfile(vault .. "/todo.md")
+    assert.is_true(vim.tbl_contains(todo_lines, "- [ ] new task from capture"))
+  end)
+end)
+
+describe("kb.daily.open_today", function()
+  it("creates the file (if missing) and opens it", function()
+    local vault = fresh_vault()
+    local daily = require("kb.daily")
+    daily.open_today()
+    local today = os.date("%Y-%m-%d")
+    local expected_path = vault .. "/daily/" .. today .. ".md"
+    local actual_path = vim.api.nvim_buf_get_name(0)
+    -- Compare by resolving both paths to canonical form
+    assert.are.equal(vim.fn.resolve(expected_path), vim.fn.resolve(actual_path))
+    vim.cmd("bwipeout!")
   end)
 end)
