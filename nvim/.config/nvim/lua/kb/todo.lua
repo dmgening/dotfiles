@@ -76,6 +76,14 @@ local function extract_tasks(daily_lines)
   return out
 end
 
+-- Returns the post-checkbox text of a task line, or nil if not a task.
+-- e.g. "- [x] write spec" -> "write spec". Used as the dedup key in sync()
+-- so a task that's been ticked off (or moved to ## Done) is not re-added
+-- when the daily is saved again.
+local function task_text(line)
+  return line:match("^%- %[.%] (.+)$")
+end
+
 function M.sync(daily_path)
   if vim.fn.filereadable(daily_path) ~= 1 then
     return false
@@ -89,9 +97,12 @@ function M.sync(daily_path)
   local todo_lines, was_new = read_or_skeleton()
   todo_lines = ensure_active_section(todo_lines)
 
-  local existing = {}
+  -- Dedup by post-checkbox text so a `- [x] foo` in ## Done dedups against
+  -- the daily's `- [ ] foo` (preventing re-insertion of finished tasks).
+  local existing_texts = {}
   for _, l in ipairs(todo_lines) do
-    existing[l] = true
+    local txt = task_text(l)
+    if txt then existing_texts[txt] = true end
   end
 
   local _, active_stop = active_section_range(todo_lines)
@@ -103,10 +114,11 @@ function M.sync(daily_path)
 
   local added = false
   for _, task in ipairs(candidates) do
-    if not existing[task] then
+    local txt = task_text(task)
+    if txt and not existing_texts[txt] then
       table.insert(todo_lines, insert_at, task)
       insert_at = insert_at + 1
-      existing[task] = true
+      existing_texts[txt] = true
       added = true
     end
   end

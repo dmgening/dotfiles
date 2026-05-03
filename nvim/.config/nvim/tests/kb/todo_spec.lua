@@ -120,6 +120,57 @@ describe("kb.todo.sync", function()
     assert.is_true(vim.tbl_contains(todo_lines, "## Active"))
     assert.is_true(vim.tbl_contains(todo_lines, "- [ ] new task"))
   end)
+
+  it("does NOT re-add a daily task that exists as [x] in ## Done", function()
+    -- This is the duplication bug from manual testing: user marks a task done
+    -- in todo.md (so it becomes [x] and moves to ## Done), then later edits
+    -- the same daily file and saves. Sync used to exact-line-dedup, see no
+    -- match for the daily's `- [ ] foo`, and re-insert into ## Active.
+    local vault = fresh_vault()
+    vim.fn.writefile({
+      "# TODO", "", "## Active", "",
+      "## Waiting", "", "## Someday", "",
+      "## Done", "- [x] write spec", "",
+    }, vault .. "/todo.md")
+    local daily_path = write_daily(vault, "2026-05-03", {
+      "- [ ] write spec",
+    })
+    local todo = require("kb.todo")
+    local changed = todo.sync(daily_path)
+    assert.is_false(changed)
+    local todo_lines = vim.fn.readfile(vault .. "/todo.md")
+    -- Active section should still be empty (only blank line between headers).
+    local in_active = false
+    local section = nil
+    for _, l in ipairs(todo_lines) do
+      if l:match("^## ") then section = l end
+      if section == "## Active" and l:match("^%- %[.%] write spec$") then
+        in_active = true
+      end
+    end
+    assert.is_false(in_active)
+  end)
+
+  it("does NOT re-add a daily task that exists as [/] (in progress) in todo", function()
+    local vault = fresh_vault()
+    vim.fn.writefile({
+      "# TODO", "", "## Active", "- [/] write spec", "",
+      "## Waiting", "", "## Someday", "", "## Done", "",
+    }, vault .. "/todo.md")
+    local daily_path = write_daily(vault, "2026-05-03", {
+      "- [ ] write spec",
+    })
+    local todo = require("kb.todo")
+    local changed = todo.sync(daily_path)
+    assert.is_false(changed)
+    -- Verify only one occurrence of "write spec" in the file.
+    local todo_lines = vim.fn.readfile(vault .. "/todo.md")
+    local count = 0
+    for _, l in ipairs(todo_lines) do
+      if l:match("write spec") then count = count + 1 end
+    end
+    assert.are.equal(1, count)
+  end)
 end)
 
 describe("kb.todo helpers", function()
