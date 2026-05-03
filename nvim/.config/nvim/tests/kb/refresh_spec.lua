@@ -99,3 +99,33 @@ describe("kb.refresh.write_through", function()
     assert.are.same({ "fresh" }, vim.fn.readfile(p))
   end)
 end)
+
+describe("kb.refresh.todo", function()
+  it("invokes dashboard.rebuild_marks if the module is loadable", function()
+    reset()
+    -- Inject a fake kb.dashboard module before refresh.todo() is called.
+    package.loaded["kb.dashboard"] = {
+      rebuild_marks_called = 0,
+      rebuild_marks = function(self) self.rebuild_marks_called = self.rebuild_marks_called + 1 end,
+    }
+    -- Stub refresh.path so we don't need a real file.
+    local refresh = require("kb.refresh")
+    local orig_path = refresh.path
+    refresh.path = function(_) end
+    refresh.todo()
+    refresh.path = orig_path
+    assert.are.equal(1, package.loaded["kb.dashboard"].rebuild_marks_called)
+    package.loaded["kb.dashboard"] = nil
+  end)
+
+  it("does not error when kb.dashboard is not loaded", function()
+    reset()
+    package.loaded["kb.dashboard"] = nil
+    -- Force the soft pcall path.
+    local refresh = require("kb.refresh")
+    local orig_path = refresh.path
+    refresh.path = function(_) end
+    assert.has_no.errors(function() refresh.todo() end)
+    refresh.path = orig_path
+  end)
+end)
