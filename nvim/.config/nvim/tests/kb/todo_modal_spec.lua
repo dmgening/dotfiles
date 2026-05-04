@@ -142,23 +142,33 @@ describe("kb.todo_modal — escape hatch and help", function()
     assert.is_true(vim.bo[buf].modifiable)
   end)
 
-  it("help() opens a floating window with the keybind list", function()
-    local _, buf = open_todo_with({ "# TODO" })
-    require("kb.todo_modal").attach(buf)
+  it("help() opens a floating window with the new keybind list", function()
+    local vault = vim.fn.tempname()
+    vim.fn.mkdir(vault, "p")
+    _G.KB_VAULT_OVERRIDE = vault
+    for _, mod in ipairs({ "kb.config", "kb.todo_modal" }) do package.loaded[mod] = nil end
+
+    local before = #vim.api.nvim_list_wins()
     require("kb.todo_modal").help()
-    -- Find the new floating window
-    local found = false
-    for _, win in ipairs(vim.api.nvim_list_wins()) do
-      local cfg = vim.api.nvim_win_get_config(win)
-      if cfg.relative == "editor" then
-        local b = vim.api.nvim_win_get_buf(win)
-        local lines = vim.api.nvim_buf_get_lines(b, 0, -1, false)
-        for _, l in ipairs(lines) do
-          if l:match("cycle") then found = true end
-        end
-      end
+    local after = #vim.api.nvim_list_wins()
+    assert.are.equal(before + 1, after)
+
+    -- Find the float
+    local float_win
+    for _, w in ipairs(vim.api.nvim_list_wins()) do
+      local cfg = vim.api.nvim_win_get_config(w)
+      if cfg.relative ~= "" then float_win = w end
     end
-    assert.is_true(found)
+    assert.is_not_nil(float_win)
+    local lines = vim.api.nvim_buf_get_lines(vim.api.nvim_win_get_buf(float_win), 0, -1, false)
+    local joined = table.concat(lines, "\n")
+
+    for _, expected in ipairs({ "tw", "ts", "ta", "gu", "  c ", "  i ", "  v " }) do
+      assert.is_true(joined:find(expected, 1, true) ~= nil,
+        "expected help to mention '" .. expected .. "'; got:\n" .. joined)
+    end
+
+    vim.api.nvim_win_close(float_win, true)
   end)
 end)
 
