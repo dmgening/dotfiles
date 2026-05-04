@@ -3,7 +3,7 @@ local todo = require("kb.todo")
 local M = {}
 
 local WINBAR =
-  " x cycle · X done · w wait · s someday · a active · o new · ? help · q close "
+  " x cycle · X done · tw wait · ts someday · ta active · o new · ? help · q close "
 
 local function relock(bufnr)
   if vim.b[bufnr].kb_todo_unlocked == 1 then return end
@@ -86,9 +86,9 @@ function M.attach(bufnr)
       set_cursor(todo.toggle_state(bufnr, current_lnum()))
     end)
   end, "kb-todo: toggle [ ] / [x] / [-]")
-  map(bufnr, "w", function() move_to(bufnr, "Waiting") end, "kb-todo: -> Waiting")
-  map(bufnr, "s", function() move_to(bufnr, "Someday") end, "kb-todo: -> Someday")
-  map(bufnr, "a", function() move_to(bufnr, "Active") end, "kb-todo: -> Active")
+  map(bufnr, "tw", function() move_to(bufnr, "Waiting") end, "kb-todo: -> Waiting")
+  map(bufnr, "ts", function() move_to(bufnr, "Someday") end, "kb-todo: -> Someday")
+  map(bufnr, "ta", function() move_to(bufnr, "Active") end, "kb-todo: -> Active")
   map(bufnr, "dd", function()
     with_unlock(bufnr, function()
       local ln = current_lnum()
@@ -129,11 +129,7 @@ function M.attach(bufnr)
     return insert_at + 1, lines
   end
 
-  -- Edit windows: i / e / o / O briefly unlock and start insert
-  local function start_edit_at_eol()
-    vim.bo[bufnr].modifiable = true
-    vim.cmd("startinsert!")
-  end
+  -- Edit windows: o / O briefly unlock and start insert
   local function start_edit_new_at_section_end()
     local at, _ = section_insert_point()
     if not at then
@@ -162,11 +158,9 @@ function M.attach(bufnr)
     vim.cmd("startinsert!")
   end
 
-  map(bufnr, "i", start_edit_at_eol, "kb-todo: amend task")
-  map(bufnr, "e", start_edit_at_eol, "kb-todo: amend task")
   map(bufnr, "o", start_edit_new_at_section_end, "kb-todo: new task at end of section")
   map(bufnr, "O", start_edit_new_at_section_start, "kb-todo: new task at start of section")
-  map(bufnr, "I", function()
+  map(bufnr, "gu", function()
     vim.b[bufnr].kb_todo_unlocked = 1
     vim.bo[bufnr].modifiable = true
     vim.cmd("startinsert!")
@@ -190,15 +184,13 @@ function M.help()
     "",
     "  x   cycle state  [ ] -> [/] -> [>] -> [?] -> [ ]   (skips archive)",
     "  X   toggle       [ ] -> [x] -> [-] -> [ ]          (archives on [x]/[-])",
-    "  w   move task to ## Waiting   (no-op if already there)",
-    "  s   move task to ## Someday   (no-op if already there)",
-    "  a   move task to ## Active    (resets [x]/[-] -> [ ])",
+    "  tw  move task to ## Waiting   (no-op if already there)",
+    "  ts  move task to ## Someday   (no-op if already there)",
+    "  ta  move task to ## Active    (resets [x]/[-] -> [ ])",
     "  dd  delete task line",
-    "  i   amend task under cursor (re-locks on <Esc>)",
-    "  e   amend task under cursor (alias of i)",
     "  o   new task at end of current section",
     "  O   new task at start of current section",
-    "  I   unlock buffer for free editing (no auto-relock this session)",
+    "  gu  unlock buffer for free editing (no auto-relock this session)",
     "  q   close buffer",
     "  ?   this help",
     "",

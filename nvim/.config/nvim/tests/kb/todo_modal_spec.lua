@@ -56,14 +56,14 @@ describe("kb.todo_modal", function()
     assert.are.equal("- [/] one", lines[4])
   end)
 
-  it("'w' moves the task to ## Waiting", function()
+  it("'tw' moves the task to ## Waiting", function()
     local _, buf = open_todo_with({
       "# TODO", "", "## Active", "- [ ] one", "",
       "## Waiting", "", "## Someday", "", "## Done", "",
     })
     require("kb.todo_modal").attach(buf)
     vim.api.nvim_win_set_cursor(0, { 4, 0 })
-    vim.cmd("normal w")
+    vim.cmd("normal tw")
     local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
     local section = nil
     local in_waiting = false
@@ -74,7 +74,7 @@ describe("kb.todo_modal", function()
     assert.is_true(in_waiting)
   end)
 
-  it("'w' on a task already in ## Waiting is a no-op (does not bounce to bottom)", function()
+  it("'tw' on a task already in ## Waiting is a no-op", function()
     local _, buf = open_todo_with({
       "# TODO", "", "## Active", "",
       "## Waiting", "- [ ] one", "- [ ] two", "",
@@ -84,12 +84,12 @@ describe("kb.todo_modal", function()
     -- '- [ ] one' is at line 6 (after ## Waiting at line 5)
     vim.api.nvim_win_set_cursor(0, { 6, 0 })
     local before = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
-    vim.cmd("normal w")
+    vim.cmd("normal tw")
     local after = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
     assert.are.same(before, after)
   end)
 
-  it("'a' on a [x] task in ## Done resets state to [ ] and moves to ## Active", function()
+  it("'ta' on a [x] task in ## Done resets state to [ ] and moves to ## Active", function()
     local _, buf = open_todo_with({
       "# TODO", "", "## Active", "",
       "## Waiting", "", "## Someday", "",
@@ -99,7 +99,7 @@ describe("kb.todo_modal", function()
     -- File: 1=# TODO 2='' 3=## Active 4='' 5=## Waiting 6='' 7=## Someday
     -- 8='' 9=## Done 10='- [x] one' 11=''
     vim.api.nvim_win_set_cursor(0, { 10, 0 })
-    vim.cmd("normal a")
+    vim.cmd("normal ta")
     local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
     local section, in_active = nil, false
     for _, l in ipairs(lines) do
@@ -124,7 +124,7 @@ describe("kb.todo_modal", function()
 end)
 
 describe("kb.todo_modal — escape hatch and help", function()
-  it("'I' sets b:kb_todo_unlocked and disables auto-relock", function()
+  it("escape hatch 'gu' sets b:kb_todo_unlocked and disables auto-relock", function()
     local _, buf = open_todo_with({
       "# TODO", "", "## Active", "- [ ] one", "",
       "## Waiting", "", "## Someday", "", "## Done", "",
