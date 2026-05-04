@@ -81,3 +81,30 @@ describe("kb.line_edit.enter_insert basic", function()
     assert.is_false(vim.bo.modifiable, "expected buffer to be relocked after <Esc>")
   end)
 end)
+
+describe("kb.line_edit line-count guard", function()
+  it("restores buffer if line count changes during a vi-mode session", function()
+    local buf = setup_task_buffer("- [ ] foo")
+    require("kb.line_edit").enter_insert(buf, { entry = "i" })
+    vim.wait(50)
+
+    local before_count = vim.api.nvim_buf_line_count(buf)
+
+    -- Directly inject an extra line to simulate what <CR> or a paste would do.
+    -- This triggers the TextChanged autocmd synchronously.
+    local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+    table.insert(lines, 3, "injected extra line")
+    vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+    -- Fire TextChanged so the guard can act.
+    vim.cmd("doautocmd TextChanged")
+    vim.wait(50)
+
+    local after_count = vim.api.nvim_buf_line_count(buf)
+    assert.are.equal(before_count, after_count,
+      "expected line count unchanged after blocked multi-line change; got " .. after_count)
+
+    -- Clean up: exit insert mode state
+    vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "x", false)
+    vim.wait(50)
+  end)
+end)

@@ -77,6 +77,24 @@ function M.enter_insert(bufnr, opts)
     end,
   })
 
+  -- Line-count guard: if any edit (paste, <CR>, etc.) would change the number of
+  -- lines in the buffer, restore the baseline snapshot and warn.
+  vim.api.nvim_create_autocmd({ "TextChangedI", "TextChanged" }, {
+    group = augroup,
+    buffer = bufnr,
+    callback = function()
+      local state = vim.b[bufnr].kb_line_edit
+      if not state then return end
+      local current_count = vim.api.nvim_buf_line_count(bufnr)
+      if current_count ~= #state.baseline then
+        -- Restore baseline; notify; keep cursor on the original line
+        vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, state.baseline)
+        vim.api.nvim_win_set_cursor(0, { state.lnum, M.COL_MIN_0IDX })
+        vim.notify("[kb] line-edit: blocked change that would alter line count", vim.log.levels.WARN)
+      end
+    end,
+  })
+
   -- Tear down on InsertLeave.
   vim.api.nvim_create_autocmd("InsertLeave", {
     group = augroup,
