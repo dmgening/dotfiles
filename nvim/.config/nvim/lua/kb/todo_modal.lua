@@ -158,6 +158,7 @@ function M.attach(bufnr)
     vim.cmd("startinsert!")
   end
 
+  map(bufnr, "i", function() require("kb.line_edit").enter_insert(bufnr, { entry = "i" }) end, "kb-todo: vi insert (line-bounded)")
   map(bufnr, "o", start_edit_new_at_section_end, "kb-todo: new task at end of section")
   map(bufnr, "O", start_edit_new_at_section_start, "kb-todo: new task at start of section")
   map(bufnr, "c", function() require("kb.capture").run() end, "kb-todo: capture")

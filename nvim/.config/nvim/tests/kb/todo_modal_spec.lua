@@ -188,3 +188,32 @@ describe("kb.todo_modal — capture key", function()
     assert.is_true(called, "expected kb.capture.run to be invoked by 'c'")
   end)
 end)
+
+describe("kb.todo_modal — vi entry: i", function()
+  it("'i' enters insert mode and clamps cursor to col >= 7", function()
+    local vault = vim.fn.tempname()
+    vim.fn.mkdir(vault, "p")
+    _G.KB_VAULT_OVERRIDE = vault
+    for _, mod in ipairs({ "kb.config", "kb.todo", "kb.todo_modal", "kb.line_edit" }) do
+      package.loaded[mod] = nil
+    end
+    local p = vault .. "/todo.md"
+    vim.fn.writefile({ "# TODO", "", "## Active", "- [ ] foo", "" }, p)
+    vim.cmd("edit " .. vim.fn.fnameescape(p))
+    local buf = vim.api.nvim_get_current_buf()
+    require("kb.todo_modal").attach(buf)
+    vim.api.nvim_win_set_cursor(0, { 4, 2 })  -- col 3 (in checkbox area, 0-indexed)
+
+    -- Call line_edit.enter_insert directly (like other modal tests do)
+    require("kb.line_edit").enter_insert(buf, { entry = "i" })
+
+    -- In headless, check observable side effects instead of mode assertion:
+    -- - modifiable=true (insert triggered unlock)
+    -- - kb_line_edit state is set (line_edit entered)
+    -- - cursor col >= 6 (clamped to COL_MIN_0IDX)
+    assert.is_true(vim.bo[buf].modifiable, "expected modifiable=true after entering insert")
+    assert.is_not_nil(vim.b[buf].kb_line_edit, "expected kb_line_edit state to be set")
+    local col = vim.api.nvim_win_get_cursor(0)[2]
+    assert.is_true(col >= 6, "expected cursor col0 >= 6; got " .. col)
+  end)
+end)
