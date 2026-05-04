@@ -1,0 +1,2 @@
+# kb popup — toggle quick-access-terminal panel
+cmd + alt - space : /Applications/kitty.app/Contents/MacOS/kitten quick-access-terminal
