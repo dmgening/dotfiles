@@ -67,17 +67,11 @@ function M.write_through(abs_path, lines_fn)
   vim.fn.writefile(new, abs_path)
 end
 
--- Refresh the open todo.md buffer (if any) and rebuild dashboard marks (if loaded).
--- Safe to call from any writer that mutated todo.md (todo.sync, manual edits, etc).
+-- Refresh the open todo.md buffer (if any). Safe to call from any writer that
+-- mutated todo.md (todo.sync, manual edits, etc).
 function M.todo()
   local config = require("kb.config")
   M.path(config.vault() .. "/todo.md")
-  if package.loaded["kb.dashboard"] then
-    local ok, dashboard = pcall(require, "kb.dashboard")
-    if ok and dashboard.rebuild_marks then
-      pcall(dashboard.rebuild_marks, dashboard)
-    end
-  end
 end
 
 return M

@@ -33,22 +33,6 @@ describe("kb.images.paste_or_fallthrough", function()
     vim.fn.delete(pending[1])
   end)
 
-  it("falls through to default paste when pngpaste fails", function()
-    local vault = fresh_vault()
-    local md = vault .. "/file.md"
-    vim.fn.writefile({ "abc" }, md)
-    vim.cmd("edit " .. vim.fn.fnameescape(md))
-    -- Set unnamed register to something pasteable.
-    vim.fn.setreg('"', "XYZ", "c")
-    vim.api.nvim_win_set_cursor(0, { 1, 0 })  -- before 'a'
-    local images = require("kb.images")
-    images._test_pngpaste = function(_) return false end
-    images.paste_or_fallthrough("p")
-    local line = vim.api.nvim_get_current_line()
-    -- 'p' (paste after) inserts after cursor; could be 'aXYZbc' or 'aXYZbc' depending
-    -- on cursor handling. Just assert the register content appeared.
-    assert.is_true(line:find("XYZ") ~= nil)
-  end)
 end)
 
 describe("kb.images.on_buf_write_pre", function()

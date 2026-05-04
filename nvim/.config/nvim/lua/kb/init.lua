@@ -33,10 +33,6 @@ local function define_commands()
     require("kb.index").refresh()
     vim.notify("[kb] index refreshed", vim.log.levels.INFO)
   end, { desc = "Rebuild kb entity + tag index" })
-
-  vim.api.nvim_create_user_command("KbDashboard", function()
-    require("kb.dashboard").open()
-  end, { desc = "Open kb dashboard" })
 end
 
 local function define_keymaps()
@@ -47,15 +43,8 @@ local function define_keymaps()
   map("<leader>kc", "<cmd>KbCapture<cr>", "Capture")
   map("<leader>kt", "<cmd>KbTodo<cr>", "Todo")
   map("<leader>kD", "<cmd>KbToday<cr>", "Today's daily")
-  map("<leader>kd", "<cmd>KbDashboard<cr>", "Dashboard")
   map("<leader>kf", "<cmd>KbFind<cr>", "Find files")
   map("<leader>kg", "<cmd>KbGrep<cr>", "Grep vault")
-
-  -- Date picker is vault-agnostic but registered here for convenience —
-  -- kb.init is the only setup() reliably called at startup.
-  vim.keymap.set("n", "<leader>Pd", function()
-    require("utils.date_picker").pick()
-  end, { desc = "Date picker (replace/insert YYYY-MM-DD)" })
 
   local ok, wk = pcall(require, "which-key")
   if ok then
@@ -157,22 +146,6 @@ local function define_autocmds()
     pattern = config.vault() .. "/todo.md",
     callback = function(args)
       require("kb.todo_modal").attach(args.buf)
-    end,
-  })
-
-  -- Rebuild dashboard calendar marks when todo.md is saved (only if
-  -- kb.dashboard is already loaded — avoids force-loading the dashboard
-  -- module on every todo write).
-  vim.api.nvim_create_autocmd("BufWritePost", {
-    group = group,
-    pattern = config.vault() .. "/todo.md",
-    callback = function()
-      if package.loaded["kb.dashboard"] then
-        local ok, dashboard = pcall(require, "kb.dashboard")
-        if ok and dashboard.rebuild_marks then
-          pcall(dashboard.rebuild_marks)
-        end
-      end
     end,
   })
 

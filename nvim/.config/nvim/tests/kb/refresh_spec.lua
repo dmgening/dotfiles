@@ -1,5 +1,5 @@
 local function reset()
-  for _, mod in ipairs({ "kb.config", "kb.refresh", "kb.dashboard" }) do
+  for _, mod in ipairs({ "kb.config", "kb.refresh" }) do
     package.loaded[mod] = nil
   end
 end
@@ -101,31 +101,17 @@ describe("kb.refresh.write_through", function()
 end)
 
 describe("kb.refresh.todo", function()
-  it("invokes dashboard.rebuild_marks if the module is loadable", function()
+  it("delegates to refresh.path with the vault todo path", function()
     reset()
-    -- Inject a fake kb.dashboard module before refresh.todo() is called.
-    package.loaded["kb.dashboard"] = {
-      rebuild_marks_called = 0,
-      rebuild_marks = function(self) self.rebuild_marks_called = self.rebuild_marks_called + 1 end,
-    }
-    -- Stub refresh.path so we don't need a real file.
+    _G.KB_VAULT_OVERRIDE = "/tmp/kb-refresh-todo-test"
+    package.loaded["kb.config"] = nil
     local refresh = require("kb.refresh")
+    local got
     local orig_path = refresh.path
-    refresh.path = function(_) end
+    refresh.path = function(p) got = p end
     refresh.todo()
     refresh.path = orig_path
-    assert.are.equal(1, package.loaded["kb.dashboard"].rebuild_marks_called)
-    package.loaded["kb.dashboard"] = nil
-  end)
-
-  it("does not error when kb.dashboard is not loaded", function()
-    reset()
-    package.loaded["kb.dashboard"] = nil
-    -- Force the soft pcall path.
-    local refresh = require("kb.refresh")
-    local orig_path = refresh.path
-    refresh.path = function(_) end
-    assert.has_no.errors(function() refresh.todo() end)
-    refresh.path = orig_path
+    assert.are.equal("/tmp/kb-refresh-todo-test/todo.md", got)
+    _G.KB_VAULT_OVERRIDE = nil
   end)
 end)
