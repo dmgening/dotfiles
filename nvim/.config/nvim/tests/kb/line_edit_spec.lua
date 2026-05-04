@@ -108,3 +108,55 @@ describe("kb.line_edit line-count guard", function()
     vim.wait(50)
   end)
 end)
+
+describe("kb.line_edit insert-entry variants", function()
+  local function setup()
+    local vault = vim.fn.tempname()
+    vim.fn.mkdir(vault, "p")
+    _G.KB_VAULT_OVERRIDE = vault
+    for _, mod in ipairs({ "kb.config", "kb.line_edit" }) do package.loaded[mod] = nil end
+    local p = vault .. "/todo.md"
+    vim.fn.writefile({ "## Active", "- [ ] hello" }, p)
+    vim.cmd("edit " .. vim.fn.fnameescape(p))
+    vim.bo.modifiable = false
+  end
+
+  it("'A' positions cursor at end of line then enters insert", function()
+    setup()
+    vim.api.nvim_win_set_cursor(0, { 2, 7 })  -- arbitrary mid-task position
+    require("kb.line_edit").enter_insert(0, { entry = "A" })
+    vim.wait(50)
+    -- Note: in headless mode, mode() may not be "i". Verify cursor + state.
+    local col = vim.api.nvim_win_get_cursor(0)[2]
+    -- "- [ ] hello" has length 11, last char is col0=10.
+    -- nvim_win_set_cursor clamps to last char while in normal mode;
+    -- startinsert then moves the virtual cursor one past in insert mode.
+    assert.are.equal(10, col, "expected cursor at last char of line (col0=10); got " .. col)
+    assert.is_true(vim.bo.modifiable)
+    assert.is_not_nil(vim.b.kb_line_edit)
+    vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "x", false)
+    vim.wait(50)
+  end)
+
+  it("'I' jumps cursor to col 7 (first editable) then enters insert", function()
+    setup()
+    vim.api.nvim_win_set_cursor(0, { 2, 9 })  -- mid-task
+    require("kb.line_edit").enter_insert(0, { entry = "I" })
+    vim.wait(50)
+    assert.are.equal(6, vim.api.nvim_win_get_cursor(0)[2], "expected col0=6 (1-indexed col 7)")
+    assert.is_true(vim.bo.modifiable)
+    vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "x", false)
+    vim.wait(50)
+  end)
+
+  it("'a' positions cursor one past current col then enters insert", function()
+    setup()
+    vim.api.nvim_win_set_cursor(0, { 2, 6 })  -- col0 6 = first editable
+    require("kb.line_edit").enter_insert(0, { entry = "a" })
+    vim.wait(50)
+    assert.are.equal(7, vim.api.nvim_win_get_cursor(0)[2], "expected cursor moved one right; got " .. vim.api.nvim_win_get_cursor(0)[2])
+    assert.is_true(vim.bo.modifiable)
+    vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "x", false)
+    vim.wait(50)
+  end)
+end)

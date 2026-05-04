@@ -45,11 +45,22 @@ function M.enter_insert(bufnr, opts)
   local line = current_line_text(bufnr, lnum)
   if not M.is_task_line(line) then return end
 
-  -- Pre-position cursor: for entry "i", clamp to col >= 7 if currently in
-  -- checkbox area. Other entry variants come in later tasks.
-  local col0 = vim.api.nvim_win_get_cursor(0)[2]
-  if col0 < M.COL_MIN_0IDX then col0 = M.COL_MIN_0IDX end
-  vim.api.nvim_win_set_cursor(0, { lnum, col0 })
+  -- Pre-position cursor based on entry variant.
+  local cur_col0 = vim.api.nvim_win_get_cursor(0)[2]
+  local target_col0
+  if opts.entry == "A" then
+    -- Position on last char (0-indexed). startinsert moves one past in insert
+    -- mode; nvim_win_set_cursor clamps to #line-1 while still in normal mode.
+    target_col0 = math.max(#line - 1, M.COL_MIN_0IDX)
+  elseif opts.entry == "I" then
+    target_col0 = M.COL_MIN_0IDX
+  elseif opts.entry == "a" then
+    target_col0 = math.max(cur_col0, M.COL_MIN_0IDX) + 1
+    if target_col0 > #line then target_col0 = #line end
+  else  -- "i" (default)
+    target_col0 = math.max(cur_col0, M.COL_MIN_0IDX)
+  end
+  vim.api.nvim_win_set_cursor(0, { lnum, target_col0 })
 
   -- Snapshot baseline for line-count guard (later tasks add the guard logic;
   -- for now we just store the snapshot so subsequent tasks don't have to
