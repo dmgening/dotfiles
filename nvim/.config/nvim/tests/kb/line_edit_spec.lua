@@ -159,3 +159,53 @@ describe("kb.line_edit insert-entry variants", function()
     vim.wait(50)
   end)
 end)
+
+describe("kb.line_edit S/C/D operators", function()
+  local function setup()
+    local vault = vim.fn.tempname()
+    vim.fn.mkdir(vault, "p")
+    _G.KB_VAULT_OVERRIDE = vault
+    for _, mod in ipairs({ "kb.config", "kb.line_edit" }) do package.loaded[mod] = nil end
+    local p = vault .. "/todo.md"
+    vim.fn.writefile({ "## Active", "- [ ] hello world" }, p)
+    vim.cmd("edit " .. vim.fn.fnameescape(p))
+    vim.bo.modifiable = false
+    return p
+  end
+
+  it("'S' clears task text and enters insert at col 7", function()
+    setup()
+    vim.api.nvim_win_set_cursor(0, { 2, 9 })  -- mid-task
+    require("kb.line_edit").enter_insert(0, { entry = "S" })
+    vim.wait(50)
+    local line = vim.api.nvim_buf_get_lines(0, 1, 2, false)[1]
+    assert.are.equal("- [ ] ", line, "expected task text cleared; got: " .. tostring(line))
+    assert.are.equal(6, vim.api.nvim_win_get_cursor(0)[2])
+    assert.is_true(vim.bo.modifiable)
+    vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "x", false)
+    vim.wait(50)
+  end)
+
+  it("'C' clears from cursor to EOL and enters insert", function()
+    setup()
+    vim.api.nvim_win_set_cursor(0, { 2, 11 })  -- col0 11 = on " world"
+    require("kb.line_edit").enter_insert(0, { entry = "C" })
+    vim.wait(50)
+    local line = vim.api.nvim_buf_get_lines(0, 1, 2, false)[1]
+    assert.are.equal("- [ ] hello", line)
+    assert.are.equal(11, vim.api.nvim_win_get_cursor(0)[2])
+    assert.is_true(vim.bo.modifiable)
+    vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "x", false)
+    vim.wait(50)
+  end)
+
+  it("'D' clears from cursor to EOL without entering insert", function()
+    setup()
+    vim.api.nvim_win_set_cursor(0, { 2, 11 })
+    require("kb.line_edit").delete_to_eol(0)
+    local line = vim.api.nvim_buf_get_lines(0, 1, 2, false)[1]
+    assert.are.equal("- [ ] hello", line)
+    -- D is one-shot, doesn't enter insert; buffer should be relocked.
+    assert.is_false(vim.bo.modifiable, "expected buffer relocked after one-shot delete")
+  end)
+end)

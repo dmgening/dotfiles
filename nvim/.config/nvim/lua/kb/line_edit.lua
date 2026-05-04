@@ -57,14 +57,33 @@ function M.enter_insert(bufnr, opts)
   elseif opts.entry == "a" then
     target_col0 = math.max(cur_col0, M.COL_MIN_0IDX) + 1
     if target_col0 > #line then target_col0 = #line end
+  elseif opts.entry == "S" then
+    target_col0 = M.COL_MIN_0IDX
+  elseif opts.entry == "C" then
+    target_col0 = math.max(cur_col0, M.COL_MIN_0IDX)
   else  -- "i" (default)
     target_col0 = math.max(cur_col0, M.COL_MIN_0IDX)
   end
   vim.api.nvim_win_set_cursor(0, { lnum, target_col0 })
 
-  -- Snapshot baseline for line-count guard (later tasks add the guard logic;
-  -- for now we just store the snapshot so subsequent tasks don't have to
-  -- migrate state shape).
+  -- For S/C: clear text before entering insert.
+  if opts.entry == "S" or opts.entry == "C" then
+    vim.bo[bufnr].modifiable = true
+    local prefix
+    if opts.entry == "S" then
+      prefix = line:sub(1, M.COL_MIN_0IDX)  -- "- [X] "
+      target_col0 = M.COL_MIN_0IDX
+    else  -- "C"
+      prefix = line:sub(1, target_col0)
+    end
+    vim.api.nvim_buf_set_lines(bufnr, lnum - 1, lnum, false, { prefix })
+    -- Re-fetch line text since we just changed it.
+    line = current_line_text(bufnr, lnum)
+    vim.api.nvim_win_set_cursor(0, { lnum, target_col0 })
+  end
+
+  -- Snapshot baseline for line-count guard. MUST be taken after S/C pre-clear
+  -- so the guard doesn't fire spuriously on the first keystroke.
   local baseline = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
   local augroup = vim.api.nvim_create_augroup("kb_line_edit_" .. bufnr, { clear = true })
   vim.b[bufnr].kb_line_edit = {
@@ -115,13 +134,32 @@ function M.enter_insert(bufnr, opts)
   })
 
   vim.bo[bufnr].modifiable = true
-  -- For entry "A" use bang form so vim places the virtual cursor past EOL
-  -- (correct vi append-at-EOL semantics). The pre-positioning to #line - 1 is
-  -- still useful as a fallback in case startinsert! ever no-ops.
-  if opts.entry == "A" then
+  -- Use bang form (startinsert!) for entries that position the cursor at/past
+  -- EOL: "A" (append at end), "S" (substitute — clears to EOL, cursor at new
+  -- EOL), "C" (change to EOL — cursor at new EOL). Plain startinsert for
+  -- entries that position the cursor inside the line.
+  if opts.entry == "A" or opts.entry == "S" or opts.entry == "C" then
     vim.cmd("startinsert!")
   else
     vim.cmd("startinsert")
+  end
+end
+
+-- Delete from cursor col to EOL on a task line (one-shot, no insert mode).
+-- If cursor is before the editable region, clamps to COL_MIN_0IDX first.
+function M.delete_to_eol(bufnr)
+  bufnr = bufnr ~= 0 and bufnr or vim.api.nvim_get_current_buf()
+  local lnum = vim.api.nvim_win_get_cursor(0)[1]
+  local line = current_line_text(bufnr, lnum)
+  if not M.is_task_line(line) then return end
+  local col0 = vim.api.nvim_win_get_cursor(0)[2]
+  if col0 < M.COL_MIN_0IDX then col0 = M.COL_MIN_0IDX end
+  local kept = line:sub(1, col0)
+  vim.bo[bufnr].modifiable = true
+  vim.api.nvim_buf_set_lines(bufnr, lnum - 1, lnum, false, { kept })
+  pcall(function() vim.cmd("silent! write") end)
+  if vim.b[bufnr].kb_todo_unlocked ~= 1 then
+    vim.bo[bufnr].modifiable = false
   end
 end
 
