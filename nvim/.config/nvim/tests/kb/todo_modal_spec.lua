@@ -161,3 +161,30 @@ describe("kb.todo_modal — escape hatch and help", function()
     assert.is_true(found)
   end)
 end)
+
+describe("kb.todo_modal — capture key", function()
+  it("'c' invokes kb.capture.run", function()
+    -- Set up a todo buffer with the modal attached
+    local vault = vim.fn.tempname()
+    vim.fn.mkdir(vault, "p")
+    _G.KB_VAULT_OVERRIDE = vault
+    for _, mod in ipairs({ "kb.config", "kb.todo", "kb.todo_modal", "kb.capture" }) do
+      package.loaded[mod] = nil
+    end
+    local todo_path = vault .. "/todo.md"
+    vim.fn.writefile({ "# TODO", "", "## Active", "- [ ] foo", "" }, todo_path)
+    vim.cmd("edit " .. vim.fn.fnameescape(todo_path))
+    require("kb.todo_modal").attach(vim.api.nvim_get_current_buf())
+
+    -- Stub kb.capture.run before pressing c
+    local capture = require("kb.capture")
+    local called = false
+    local orig_run = capture.run
+    capture.run = function() called = true end
+
+    vim.api.nvim_feedkeys("c", "x", false)
+    capture.run = orig_run
+
+    assert.is_true(called, "expected kb.capture.run to be invoked by 'c'")
+  end)
+end)

@@ -160,6 +160,7 @@ function M.attach(bufnr)
 
   map(bufnr, "o", start_edit_new_at_section_end, "kb-todo: new task at end of section")
   map(bufnr, "O", start_edit_new_at_section_start, "kb-todo: new task at start of section")
+  map(bufnr, "c", function() require("kb.capture").run() end, "kb-todo: capture")
   map(bufnr, "gu", function()
     vim.b[bufnr].kb_todo_unlocked = 1
     vim.bo[bufnr].modifiable = true
