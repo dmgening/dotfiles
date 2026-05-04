@@ -115,7 +115,14 @@ function M.enter_insert(bufnr, opts)
   })
 
   vim.bo[bufnr].modifiable = true
-  vim.cmd("startinsert")
+  -- For entry "A" use bang form so vim places the virtual cursor past EOL
+  -- (correct vi append-at-EOL semantics). The pre-positioning to #line - 1 is
+  -- still useful as a fallback in case startinsert! ever no-ops.
+  if opts.entry == "A" then
+    vim.cmd("startinsert!")
+  else
+    vim.cmd("startinsert")
+  end
 end
 
 return M
