@@ -15,6 +15,17 @@ local function buffers_for(abs_path)
   return out
 end
 
+-- Temporarily set modifiable=true on `buf`, run `fn`, restore. The kb todo
+-- modal locks the buffer (modifiable=false) for protection; external writers
+-- like sync/refresh need to bypass that lock without disturbing it.
+local function with_modifiable(buf, fn)
+  local prev = vim.bo[buf].modifiable
+  if not prev then vim.bo[buf].modifiable = true end
+  local ok, err = pcall(fn)
+  if not prev then vim.bo[buf].modifiable = false end
+  if not ok then error(err) end
+end
+
 -- Reload the buffer for abs_path (if any) from disk. Preserves view per window
 -- showing the buffer. Skips and notifies if any matching buffer is modified.
 function M.path(abs_path)
@@ -37,8 +48,10 @@ function M.path(abs_path)
       end
     end
     -- Replace lines without firing BufRead/BufWrite cascades.
-    vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
-    vim.bo[buf].modified = false
+    with_modifiable(buf, function()
+      vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+      vim.bo[buf].modified = false
+    end)
     for win, view in pairs(views) do
       vim.api.nvim_win_call(win, function() vim.fn.winrestview(view) end)
     end
@@ -54,8 +67,10 @@ function M.write_through(abs_path, lines_fn)
     local buf = bufs[1]
     local current = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
     local new = lines_fn(current)
-    vim.api.nvim_buf_set_lines(buf, 0, -1, false, new)
-    vim.bo[buf].modified = true
+    with_modifiable(buf, function()
+      vim.api.nvim_buf_set_lines(buf, 0, -1, false, new)
+      vim.bo[buf].modified = true
+    end)
     return
   end
   local current = {}
