@@ -147,6 +147,71 @@ function M.enter_insert(bufnr, opts)
   end
 end
 
+-- Enter visual mode bounded to the current line and to col >= COL_MIN_0IDX.
+-- Sets up CursorMoved (line-clamp), TextChanged (line-count guard), and
+-- ModeChanged *:n (exit/relock) autocmds. Tears down on ModeChanged.
+function M.enter_visual(bufnr)
+  bufnr = bufnr ~= 0 and bufnr or vim.api.nvim_get_current_buf()
+  local lnum = vim.api.nvim_win_get_cursor(0)[1]
+  local line = current_line_text(bufnr, lnum)
+  if not M.is_task_line(line) then return end
+
+  -- Pre-clamp cursor.
+  local col0 = vim.api.nvim_win_get_cursor(0)[2]
+  if col0 < M.COL_MIN_0IDX then col0 = M.COL_MIN_0IDX end
+  if col0 > #line - 1 then col0 = math.max(M.COL_MIN_0IDX, #line - 1) end
+  vim.api.nvim_win_set_cursor(0, { lnum, col0 })
+
+  local baseline = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+  local augroup = vim.api.nvim_create_augroup("kb_line_edit_" .. bufnr, { clear = true })
+  vim.b[bufnr].kb_line_edit = { lnum = lnum, baseline = baseline, augroup = augroup }
+
+  -- Clamp cursor to the starting line and to col >= COL_MIN_0IDX.
+  vim.api.nvim_create_autocmd("CursorMoved", {
+    group = augroup,
+    buffer = bufnr,
+    callback = function()
+      local state = vim.b[bufnr].kb_line_edit
+      if not state then return end
+      local pos = vim.api.nvim_win_get_cursor(0)
+      if pos[1] ~= state.lnum or pos[2] < M.COL_MIN_0IDX then
+        clamp_cursor(bufnr, state.lnum, math.max(pos[2], M.COL_MIN_0IDX))
+      end
+    end,
+  })
+
+  -- Line-count guard: block visual-mode deletes that span multiple lines.
+  vim.api.nvim_create_autocmd("TextChanged", {
+    group = augroup,
+    buffer = bufnr,
+    callback = function()
+      local state = vim.b[bufnr].kb_line_edit
+      if not state then return end
+      if vim.api.nvim_buf_line_count(bufnr) ~= #state.baseline then
+        vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, state.baseline)
+        vim.api.nvim_win_set_cursor(0, { state.lnum, M.COL_MIN_0IDX })
+        vim.notify("[kb] line-edit: blocked change that would alter line count", vim.log.levels.WARN)
+      end
+    end,
+  })
+
+  -- Tear down when returning to normal mode from visual (ModeChanged).
+  -- Note: 'pattern' cannot be combined with 'buffer' in nvim_create_autocmd,
+  -- so we check vim.v.event.new_mode inside the callback instead.
+  vim.api.nvim_create_autocmd("ModeChanged", {
+    group = augroup,
+    buffer = bufnr,
+    callback = function()
+      if vim.v.event and vim.v.event.new_mode == "n" then
+        exit(bufnr)
+      end
+    end,
+  })
+
+  vim.bo[bufnr].modifiable = true
+  vim.api.nvim_feedkeys("v", "n", false)
+end
+
 -- Replace the single character under the cursor with ch (one-shot, no insert
 -- mode). If ch is nil, reads the next keypress interactively (keymap path).
 -- No-ops when the cursor is inside the checkbox prefix area.
