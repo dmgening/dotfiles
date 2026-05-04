@@ -25,19 +25,34 @@ local function clamp_cursor(bufnr, lnum, col0)
   vim.api.nvim_win_set_cursor(0, { lnum, col0 })
 end
 
-local function exit(bufnr)
+-- Tear down the line-edit session for `bufnr`. `from` indicates the caller:
+--   "insert_leave" — called from InsertLeave; todo_modal's global InsertLeave
+--     handler will write the buffer afterward, so we skip the write here.
+--   "mode_changed" — called from visual-mode's ModeChanged; no other handler
+--     fires, so we must write here.
+local function exit(bufnr, from)
   local state = vim.b[bufnr].kb_line_edit
   if not state then return end
   pcall(vim.api.nvim_del_augroup_by_id, state.augroup)
   vim.b[bufnr].kb_line_edit = nil
   if vim.b[bufnr].kb_todo_unlocked == 1 then return end
-  pcall(function() vim.cmd("silent! write") end)
+  if from ~= "insert_leave" then
+    pcall(function() vim.cmd("silent! write") end)
+  end
   vim.bo[bufnr].modifiable = false
 end
 
--- Enter insert mode bounded to the current line and to col >= COL_MIN_1IDX.
--- opts.entry is currently always "i" in this task; later tasks add other entry
--- variants.
+-- Enter insert (or replace) mode bounded to the current line and to
+-- col >= COL_MIN_1IDX. `opts.entry` selects the pre-positioning + dispatch:
+--   "i" insert at cursor (clamped)
+--   "a" append after cursor
+--   "A" append at EOL (uses startinsert!)
+--   "I" insert at first editable col
+--   "S" substitute task text — clears col 7-EOL, then startinsert!
+--   "C" change cursor → EOL — clears trailing text, then startinsert!
+--   "R" replace mode — uses startreplace
+-- One-shot ops (D/r/Y) live as separate functions: M.delete_to_eol,
+-- M.replace_char, M.yank_text. Visual entry: M.enter_visual.
 function M.enter_insert(bufnr, opts)
   bufnr = bufnr ~= 0 and bufnr or vim.api.nvim_get_current_buf()
   opts = opts or { entry = "i" }
@@ -125,12 +140,14 @@ function M.enter_insert(bufnr, opts)
     end,
   })
 
-  -- Tear down on InsertLeave.
+  -- Tear down on InsertLeave. The global InsertLeave in todo_modal will fire
+  -- after this and handle the buffer write; pass "insert_leave" so exit()
+  -- doesn't double-write.
   vim.api.nvim_create_autocmd("InsertLeave", {
     group = augroup,
     buffer = bufnr,
     once = true,
-    callback = function() exit(bufnr) end,
+    callback = function() exit(bufnr, "insert_leave") end,
   })
 
   vim.bo[bufnr].modifiable = true
@@ -198,12 +215,15 @@ function M.enter_visual(bufnr)
   -- Tear down when returning to normal mode from visual (ModeChanged).
   -- Note: 'pattern' cannot be combined with 'buffer' in nvim_create_autocmd,
   -- so we check vim.v.event.new_mode inside the callback instead.
+  -- once=true guards against the autocmd firing again before exit() removes
+  -- the augroup (defensive — exit() already deletes the augroup synchronously).
   vim.api.nvim_create_autocmd("ModeChanged", {
     group = augroup,
     buffer = bufnr,
+    once = true,
     callback = function()
       if vim.v.event and vim.v.event.new_mode == "n" then
-        exit(bufnr)
+        exit(bufnr, "mode_changed")
       end
     end,
   })

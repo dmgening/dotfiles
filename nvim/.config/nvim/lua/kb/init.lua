@@ -39,7 +39,7 @@ local function define_commands()
     if args.args ~= "" then
       path = vim.fn.resolve(vim.fn.fnamemodify(args.args, ":p"))
     else
-      path = vim.api.nvim_buf_get_name(0)
+      path = vim.fn.resolve(vim.api.nvim_buf_get_name(0))
       local daily_prefix = require("kb.config").vault() .. "/daily/"
       local is_daily = path ~= "" and vim.startswith(vim.fn.resolve(path), vim.fn.resolve(daily_prefix))
       if not is_daily then
