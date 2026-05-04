@@ -128,10 +128,9 @@ describe("kb.line_edit insert-entry variants", function()
     vim.wait(50)
     -- Note: in headless mode, mode() may not be "i". Verify cursor + state.
     local col = vim.api.nvim_win_get_cursor(0)[2]
-    -- "- [ ] hello" has length 11, last char is col0=10.
-    -- nvim_win_set_cursor clamps to last char while in normal mode;
-    -- startinsert then moves the virtual cursor one past in insert mode.
-    assert.are.equal(10, col, "expected cursor at last char of line (col0=10); got " .. col)
+    -- "- [ ] hello" has length 11. With startinsert! (bang), cursor jumps
+    -- past EOL to col0=11, where vi-natural append happens.
+    assert.are.equal(11, col, "expected cursor past EOL (col0=11); got " .. col)
     assert.is_true(vim.bo.modifiable)
     assert.is_not_nil(vim.b.kb_line_edit)
     vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "x", false)
