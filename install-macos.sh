@@ -73,6 +73,30 @@ else
     echo "  ✓ TPM already installed"
 fi
 
+
+# kb popup — OS-level hotkey daemon
+if ! brew list skhd >/dev/null 2>&1; then
+  brew tap koekeishiya/formulae
+  brew install skhd
+fi
+skhd --start-service
+
+# Free Cmd+Alt+Space from Spotlight (Show Finder search window)
+# 65 = Spotlight's "Show Finder search window" symbolic hotkey
+defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 65 \
+  '<dict><key>enabled</key><false/></dict>'
+
+cat <<'EOF'
+
+============================================================
+kb popup — manual setup steps remaining:
+  1. Reboot or logout/login (Spotlight unbind takes effect)
+  2. System Settings → Privacy & Security → Accessibility
+     → enable skhd if not already enabled
+  3. Press Cmd+Alt+Space to verify the popup launches
+============================================================
+EOF
+
 echo
 echo "Next steps:"
 echo "  1. Run 'make zsh' to stow zsh configuration"
