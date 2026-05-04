@@ -37,7 +37,7 @@ local function define_commands()
   vim.api.nvim_create_user_command("KbTaskSync", function(args)
     local path
     if args.args ~= "" then
-      path = vim.fn.fnamemodify(args.args, ":p")
+      path = vim.fn.resolve(vim.fn.fnamemodify(args.args, ":p"))
     else
       path = vim.api.nvim_buf_get_name(0)
       local daily_prefix = require("kb.config").vault() .. "/daily/"
