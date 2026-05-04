@@ -136,13 +136,54 @@ function M.enter_insert(bufnr, opts)
   vim.bo[bufnr].modifiable = true
   -- Use bang form (startinsert!) for entries that position the cursor at/past
   -- EOL: "A" (append at end), "S" (substitute — clears to EOL, cursor at new
-  -- EOL), "C" (change to EOL — cursor at new EOL). Plain startinsert for
-  -- entries that position the cursor inside the line.
-  if opts.entry == "A" or opts.entry == "S" or opts.entry == "C" then
+  -- EOL), "C" (change to EOL — cursor at new EOL). Use startreplace for "R"
+  -- (replace mode). Plain startinsert for all other entries.
+  if opts.entry == "R" then
+    vim.cmd("startreplace")
+  elseif opts.entry == "A" or opts.entry == "S" or opts.entry == "C" then
     vim.cmd("startinsert!")
   else
     vim.cmd("startinsert")
   end
+end
+
+-- Replace the single character under the cursor with ch (one-shot, no insert
+-- mode). If ch is nil, reads the next keypress interactively (keymap path).
+-- No-ops when the cursor is inside the checkbox prefix area.
+function M.replace_char(bufnr, ch)
+  bufnr = bufnr ~= 0 and bufnr or vim.api.nvim_get_current_buf()
+  if not ch then
+    -- Read next char interactively (when called from a keymap without ch arg)
+    local code = vim.fn.getchar()
+    if type(code) == "number" then
+      ch = vim.fn.nr2char(code)
+    else
+      return  -- non-char input (e.g., escape)
+    end
+  end
+  local lnum = vim.api.nvim_win_get_cursor(0)[1]
+  local line = current_line_text(bufnr, lnum)
+  if not M.is_task_line(line) then return end
+  local col0 = vim.api.nvim_win_get_cursor(0)[2]
+  if col0 < M.COL_MIN_0IDX then return end
+  if col0 >= #line then return end
+  local new = line:sub(1, col0) .. ch .. line:sub(col0 + 2)
+  vim.bo[bufnr].modifiable = true
+  vim.api.nvim_buf_set_lines(bufnr, lnum - 1, lnum, false, { new })
+  pcall(function() vim.cmd("silent! write") end)
+  if vim.b[bufnr].kb_todo_unlocked ~= 1 then
+    vim.bo[bufnr].modifiable = false
+  end
+end
+
+-- Yank the task text (col 7 to EOL) into the unnamed register (one-shot).
+function M.yank_text(bufnr)
+  bufnr = bufnr ~= 0 and bufnr or vim.api.nvim_get_current_buf()
+  local lnum = vim.api.nvim_win_get_cursor(0)[1]
+  local line = current_line_text(bufnr, lnum)
+  if not M.is_task_line(line) then return end
+  local task_text = line:sub(M.COL_MIN_0IDX + 1)
+  vim.fn.setreg('"', task_text)
 end
 
 -- Delete from cursor col to EOL on a task line (one-shot, no insert mode).

@@ -209,3 +209,52 @@ describe("kb.line_edit S/C/D operators", function()
     assert.is_false(vim.bo.modifiable, "expected buffer relocked after one-shot delete")
   end)
 end)
+
+describe("kb.line_edit R/r/Y", function()
+  local function setup()
+    local vault = vim.fn.tempname()
+    vim.fn.mkdir(vault, "p")
+    _G.KB_VAULT_OVERRIDE = vault
+    for _, mod in ipairs({ "kb.config", "kb.line_edit" }) do package.loaded[mod] = nil end
+    local p = vault .. "/todo.md"
+    vim.fn.writefile({ "## Active", "- [ ] hello" }, p)
+    vim.cmd("edit " .. vim.fn.fnameescape(p))
+    vim.bo.modifiable = false
+  end
+
+  it("'r' replaces single char under cursor", function()
+    setup()
+    vim.api.nvim_win_set_cursor(0, { 2, 6 })  -- on 'h'
+    require("kb.line_edit").replace_char(0, "X")
+    local line = vim.api.nvim_buf_get_lines(0, 1, 2, false)[1]
+    assert.are.equal("- [ ] Xello", line)
+    assert.is_false(vim.bo.modifiable, "expected buffer relocked")
+  end)
+
+  it("'r' on cursor in checkbox area is a no-op", function()
+    setup()
+    vim.api.nvim_win_set_cursor(0, { 2, 2 })  -- in checkbox
+    require("kb.line_edit").replace_char(0, "X")
+    local line = vim.api.nvim_buf_get_lines(0, 1, 2, false)[1]
+    assert.are.equal("- [ ] hello", line, "expected line unchanged")
+  end)
+
+  it("'Y' yanks col 7 -> EOL into unnamed register", function()
+    setup()
+    vim.api.nvim_win_set_cursor(0, { 2, 9 })  -- doesn't matter, Y always yanks col 7-EOL
+    require("kb.line_edit").yank_text(0)
+    assert.are.equal("hello", vim.fn.getreg('"'))
+  end)
+
+  it("enter_insert with entry='R' unlocks buffer and sets state", function()
+    setup()
+    vim.api.nvim_win_set_cursor(0, { 2, 7 })
+    require("kb.line_edit").enter_insert(0, { entry = "R" })
+    vim.wait(50)
+    -- In headless, mode() may not switch to "R". Verify side effects.
+    assert.is_true(vim.bo.modifiable)
+    assert.is_not_nil(vim.b.kb_line_edit)
+    vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "x", false)
+    vim.wait(50)
+  end)
+end)
