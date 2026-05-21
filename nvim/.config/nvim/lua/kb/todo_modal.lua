@@ -3,7 +3,7 @@ local todo = require("kb.todo")
 local M = {}
 
 local WINBAR =
-  " x cycle · X done · w wait · s someday · a active · o new · ? help · q close "
+  " x cycle · X done · tw wait · ts someday · ta active · o new · ? help · q close "
 
 local function relock(bufnr)
   if vim.b[bufnr].kb_todo_unlocked == 1 then return end
@@ -86,9 +86,9 @@ function M.attach(bufnr)
       set_cursor(todo.toggle_state(bufnr, current_lnum()))
     end)
   end, "kb-todo: toggle [ ] / [x] / [-]")
-  map(bufnr, "w", function() move_to(bufnr, "Waiting") end, "kb-todo: -> Waiting")
-  map(bufnr, "s", function() move_to(bufnr, "Someday") end, "kb-todo: -> Someday")
-  map(bufnr, "a", function() move_to(bufnr, "Active") end, "kb-todo: -> Active")
+  map(bufnr, "tw", function() move_to(bufnr, "Waiting") end, "kb-todo: -> Waiting")
+  map(bufnr, "ts", function() move_to(bufnr, "Someday") end, "kb-todo: -> Someday")
+  map(bufnr, "ta", function() move_to(bufnr, "Active") end, "kb-todo: -> Active")
   map(bufnr, "dd", function()
     with_unlock(bufnr, function()
       local ln = current_lnum()
@@ -129,11 +129,7 @@ function M.attach(bufnr)
     return insert_at + 1, lines
   end
 
-  -- Edit windows: i / e / o / O briefly unlock and start insert
-  local function start_edit_at_eol()
-    vim.bo[bufnr].modifiable = true
-    vim.cmd("startinsert!")
-  end
+  -- Edit windows: o / O briefly unlock and start insert
   local function start_edit_new_at_section_end()
     local at, _ = section_insert_point()
     if not at then
@@ -162,11 +158,21 @@ function M.attach(bufnr)
     vim.cmd("startinsert!")
   end
 
-  map(bufnr, "i", start_edit_at_eol, "kb-todo: amend task")
-  map(bufnr, "e", start_edit_at_eol, "kb-todo: amend task")
+  map(bufnr, "i", function() require("kb.line_edit").enter_insert(bufnr, { entry = "i" }) end, "kb-todo: vi insert (line-bounded)")
+  map(bufnr, "a", function() require("kb.line_edit").enter_insert(bufnr, { entry = "a" }) end, "kb-todo: vi append")
+  map(bufnr, "A", function() require("kb.line_edit").enter_insert(bufnr, { entry = "A" }) end, "kb-todo: vi append at EOL")
+  map(bufnr, "I", function() require("kb.line_edit").enter_insert(bufnr, { entry = "I" }) end, "kb-todo: vi insert at first editable col")
+  map(bufnr, "S", function() require("kb.line_edit").enter_insert(bufnr, { entry = "S" }) end, "kb-todo: vi substitute task text")
+  map(bufnr, "C", function() require("kb.line_edit").enter_insert(bufnr, { entry = "C" }) end, "kb-todo: vi change to EOL")
+  map(bufnr, "D", function() require("kb.line_edit").delete_to_eol(bufnr) end, "kb-todo: vi delete to EOL")
+  map(bufnr, "R", function() require("kb.line_edit").enter_insert(bufnr, { entry = "R" }) end, "kb-todo: vi replace mode")
+  map(bufnr, "r", function() require("kb.line_edit").replace_char(bufnr) end, "kb-todo: vi replace single char")
+  map(bufnr, "Y", function() require("kb.line_edit").yank_text(bufnr) end, "kb-todo: yank task text")
+  map(bufnr, "v", function() require("kb.line_edit").enter_visual(bufnr) end, "kb-todo: vi visual (line-bounded)")
   map(bufnr, "o", start_edit_new_at_section_end, "kb-todo: new task at end of section")
   map(bufnr, "O", start_edit_new_at_section_start, "kb-todo: new task at start of section")
-  map(bufnr, "I", function()
+  map(bufnr, "c", function() require("kb.capture").run() end, "kb-todo: capture")
+  map(bufnr, "gu", function()
     vim.b[bufnr].kb_todo_unlocked = 1
     vim.bo[bufnr].modifiable = true
     vim.cmd("startinsert!")
@@ -188,19 +194,33 @@ function M.help()
   local lines = {
     " kb-todo modal keys ",
     "",
-    "  x   cycle state  [ ] -> [/] -> [>] -> [?] -> [ ]   (skips archive)",
-    "  X   toggle       [ ] -> [x] -> [-] -> [ ]          (archives on [x]/[-])",
-    "  w   move task to ## Waiting   (no-op if already there)",
-    "  s   move task to ## Someday   (no-op if already there)",
-    "  a   move task to ## Active    (resets [x]/[-] -> [ ])",
-    "  dd  delete task line",
-    "  i   amend task under cursor (re-locks on <Esc>)",
-    "  e   amend task under cursor (alias of i)",
-    "  o   new task at end of current section",
-    "  O   new task at start of current section",
-    "  I   unlock buffer for free editing (no auto-relock this session)",
-    "  q   close buffer",
-    "  ?   this help",
+    "  state:",
+    "    x   cycle [ ]/[/]/[>]/[?]   (skips archive)",
+    "    X   toggle [ ]/[x]/[-]      (archives [x]/[-])",
+    "",
+    "  move task between sections:",
+    "    tw  -> Waiting     (no-op if already there)",
+    "    ts  -> Someday     (no-op if already there)",
+    "    ta  -> Active      (resets [x]/[-] -> [ ])",
+    "",
+    "  task ops:",
+    "    dd  delete task",
+    "    o   new task at end of section",
+    "    O   new task at start of section",
+    "    c   open kb capture",
+    "",
+    "  vi-style line edit (bounded to col 7+, current line only):",
+    "    i   insert at cursor             a   append after cursor",
+    "    A   append at EOL                I   insert at first editable",
+    "    S   substitute task text         C   change to EOL",
+    "    D   delete to EOL                R   replace mode",
+    "    r{ch}  replace single char       Y   yank task text",
+    "    v   visual select",
+    "",
+    "  escape hatch:",
+    "    gu  unlock buffer (no auto-relock this session)",
+    "",
+    "  q   close buffer       ?   this help",
     "",
     "  press <Esc>, q, or ? to close",
   }

@@ -33,6 +33,27 @@ local function define_commands()
     require("kb.index").refresh()
     vim.notify("[kb] index refreshed", vim.log.levels.INFO)
   end, { desc = "Rebuild kb entity + tag index" })
+
+  vim.api.nvim_create_user_command("KbTaskSync", function(args)
+    local path
+    if args.args ~= "" then
+      path = vim.fn.resolve(vim.fn.fnamemodify(args.args, ":p"))
+    else
+      path = vim.fn.resolve(vim.api.nvim_buf_get_name(0))
+      local daily_prefix = require("kb.config").vault() .. "/daily/"
+      local is_daily = path ~= "" and vim.startswith(vim.fn.resolve(path), vim.fn.resolve(daily_prefix))
+      if not is_daily then
+        vim.notify("[kb] KbTaskSync: current buffer is not a daily file", vim.log.levels.WARN)
+        return
+      end
+    end
+    local synced = require("kb.todo").sync(path)
+    if synced then
+      vim.notify("[kb] task sync: merged tasks", vim.log.levels.INFO)
+    else
+      vim.notify("[kb] task sync: nothing to merge", vim.log.levels.INFO)
+    end
+  end, { nargs = "?", complete = "file", desc = "Re-sync tasks from a daily into todo.md" })
 end
 
 local function define_keymaps()

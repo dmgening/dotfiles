@@ -100,6 +100,42 @@ describe("kb.refresh.write_through", function()
   end)
 end)
 
+describe("kb.refresh non-modifiable buffer", function()
+  it("refresh.path succeeds when target buffer is non-modifiable", function()
+    reset()
+    local p = tmpfile("one\ntwo\n")
+    vim.cmd("edit " .. vim.fn.fnameescape(p))
+    local buf = vim.api.nvim_get_current_buf()
+    vim.bo[buf].modifiable = false
+    -- Mutate on disk behind nvim's back
+    vim.fn.writefile({ "one", "two", "three" }, p)
+    -- Should not error even though buffer is non-modifiable
+    assert.has_no.errors(function() require("kb.refresh").path(p) end)
+    local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+    assert.are.same({ "one", "two", "three" }, lines)
+    -- Buffer should still be non-modifiable after refresh (lock preserved)
+    assert.is_false(vim.bo[buf].modifiable, "expected modifiable=false to be restored")
+  end)
+
+  it("write_through succeeds when target buffer is non-modifiable", function()
+    reset()
+    local p = vim.fn.tempname() .. ".md"
+    vim.fn.writefile({ "old" }, p)
+    vim.cmd("edit " .. vim.fn.fnameescape(p))
+    local buf = vim.api.nvim_get_current_buf()
+    vim.bo[buf].modifiable = false
+    assert.has_no.errors(function()
+      require("kb.refresh").write_through(p, function(lines)
+        table.insert(lines, "new")
+        return lines
+      end)
+    end)
+    local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+    assert.are.same({ "old", "new" }, lines)
+    assert.is_false(vim.bo[buf].modifiable, "expected modifiable=false to be restored")
+  end)
+end)
+
 describe("kb.refresh.todo", function()
   it("delegates to refresh.path with the vault todo path", function()
     reset()
