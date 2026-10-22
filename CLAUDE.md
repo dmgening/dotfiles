@@ -35,6 +35,10 @@ zsh -i -c exit
 nvim --headless "+Lazy! sync" +qa
 ```
 
+## Public repo
+
+This repo is public on GitHub. Nothing employer-specific goes here: company names, hosts, repos, cloud projects, clusters, people, account IDs, company Claude plugins/skills/hooks. Those live in `~/Projects/dotfiles-private/<company>/` (stow packages, see its README); public configs only reference them generically (`@~/.claude/CLAUDE.work.md`, `~/.config/zsh-private/`, `intent.*` git config). The global pre-commit (`git/.config/git/hooks/pre-commit`) refuses staged lines matching the private denylists in any GitHub repo without a `.leak-guard-skip` file.
+
 ## Things to watch out for
 
 - The `zsh/.zshenv` sets `ZDOTDIR` to `~/.config/zsh/runcom` — all zsh runcom files live there, not in `~`

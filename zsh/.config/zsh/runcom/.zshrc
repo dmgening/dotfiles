@@ -62,12 +62,10 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
-export GOPROXY="athens.tabby.dev"
-export GONOSUMDB="gitlab.com/tabby.ai/*"
-export GONOPROXY="none"
-
-# The next line updates PATH for the Tabby CLI
-source /Users/geningdm/.tabby/.profile
+# Private, per-company settings (~/Projects/dotfiles-private/<company>/zsh)
+for conf in ${XDG_CONFIG_HOME:-$HOME/.config}/zsh-private/*.(sh|zsh)(N-.); do
+  source "$conf"
+done
 export PATH="$HOME/.local/bin:$PATH"
 export PATH="$HOME/.local/bin:$PATH"
 

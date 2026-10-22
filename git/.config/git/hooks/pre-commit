@@ -1,0 +1,35 @@
+#!/bin/sh
+# Leak guard: refuses staged lines (and file names) matching the employer denylists
+# in repos that may be public, then runs the repo's own pre-commit.
+#
+#   denylists   ~/Projects/dotfiles-private/*/denylist (override: git config intent.denylistGlob)
+#               one extended regex per line, case-insensitive; '#' comments
+#   checked     repos whose origin is on github.com
+#   skipped     repos with a tracked .leak-guard-skip file at the top (private ones)
+
+top="$(git rev-parse --show-toplevel)"
+origin="$(git remote get-url origin 2>/dev/null)"
+glob="$(git config --get intent.denylistGlob || echo "$HOME/Projects/dotfiles-private/*/denylist")"
+glob="$(echo "$glob" | sed "s|^~|$HOME|")"
+
+if echo "$origin" | grep -q 'github\.com' && [ ! -e "$top/.leak-guard-skip" ]; then
+  patterns="$(cat $glob 2>/dev/null | grep -v '^#' | grep -v '^$' | paste -sd'|' -)"
+  if [ -n "$patterns" ]; then
+    hits="$(git diff --cached --no-color -U0 --diff-filter=ACMR \
+      | grep -E '^(\+\+\+ b/|\+)' \
+      | awk '/^\+\+\+ b\//{f=substr($0,7); next} {print f": "substr($0,2)}' \
+      | grep -iE "$patterns")"
+    names="$(git diff --cached --name-only --diff-filter=ACMR | grep -iE "$patterns")"
+    if [ -n "$hits$names" ]; then
+      echo "pre-commit: employer-specific content in a repo that may be public ($origin):" >&2
+      [ -n "$names" ] && echo "$names" | sed 's/^/  file name: /' >&2
+      [ -n "$hits" ] && echo "$hits" | cut -c1-160 | sed 's/^/  /' >&2
+      echo "Move it to ~/Projects/dotfiles-private/<company>/; for a private repo, commit a .leak-guard-skip file." >&2
+      exit 1
+    fi
+  fi
+fi
+
+local_hook="$(git rev-parse --git-common-dir)/hooks/pre-commit"
+[ -x "$local_hook" ] && exec "$local_hook" "$@"
+exit 0

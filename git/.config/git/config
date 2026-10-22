@@ -5,6 +5,9 @@
   showStash = true
 [push]
   default = current
+[core]
+  # commit-msg checks intent-first messages; other names chain to the repo's .git/hooks
+  hooksPath = ~/.config/git/hooks
 [alias]
   commit-rnd = "!git commit -m \"`curl -s whatthecommit.com | awk '{ if ($0 ~ /<p>.*/) { sub(/<p>/, \"\", $0); print }}'`\""
   find-ancestor = "!zsh -c 'diff -u <(git rev-list --first-parent '${1:-master}') <(git rev-list --first-parent '${2:-HEAD}') | sed -ne \"s/^ //p\" | head -1' -"
