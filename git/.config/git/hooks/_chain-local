@@ -1,0 +1,7 @@
+#!/bin/sh
+# core.hooksPath makes git ignore the repo's own .git/hooks. Every standard hook name
+# in this directory is a symlink to this script, which runs the repo's hook of the
+# same name, so repo-local hooks (pre-commit framework, etc.) keep working.
+hook="$(git rev-parse --git-common-dir)/hooks/$(basename "$0")"
+[ -x "$hook" ] && exec "$hook" "$@"
+exit 0

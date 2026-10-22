@@ -1,0 +1,125 @@
+#!/usr/bin/env python3
+"""commit-msg: intent-first commit messages (rules: ~/.claude/CLAUDE.md, "Commit messages").
+
+    <KEY>: <area>: <what changes>        subject, <= 72 chars; KEY only in Jira repos
+
+    Why: <the problem or goal>
+    How: <key decisions>                 optional
+    Note: <trade-offs, risks>            optional
+
+Jira repos are listed in git config (set from the private dotfiles, never here):
+    git config --global --add intent.jiraRemote <substring of the origin URL>
+    git config --global --add intent.jiraRoot   <path prefix, ~ allowed>
+
+Fixes silently what is mechanical:
+  - Jira repo, branch linked to a key, subject has no key -> prefix "KEY: "
+  - agent session scope "wip(1a2b3c4d): " -> dropped (the session id means nothing to a reader)
+  - no blank line after the subject -> inserted
+Rejects (exit 1) what needs thinking:
+  - subject longer than 72 chars
+  - no "Why:" line in the body
+Skips Merge / Revert / fixup! / squash! / amend! commits.
+
+Installed via `git config --global core.hooksPath ~/.config/git/hooks`, git ignores the
+repo's own .git/hooks; this script runs the repo's commit-msg afterwards so it isn't lost.
+"""
+import os
+import re
+import subprocess
+import sys
+
+# Check only commits made by Claude Code (it sets CLAUDECODE=1 for its commands).
+# False: check every commit, yours included.
+ONLY_CLAUDE = True
+
+MAX_SUBJECT = 72
+SKIP = re.compile(r"^(Merge |Revert |fixup! |squash! |amend! )")
+ANY_KEY = re.compile(r"^[A-Z][A-Z0-9]{1,9}-\d+: ")
+KEY_IN_BRANCH = re.compile(r"(?<![A-Za-z0-9])([A-Z][A-Z0-9]{1,9}-\d+)(?![0-9])")
+SESSION_SCOPE = re.compile(r"^[a-z]+\([0-9a-f]{8}\): ")
+WHY = re.compile(r"^Why:\s*\S", re.M)
+SCISSORS = "# ------------------------ >8 ------------------------"
+
+
+def git(*args):
+    p = subprocess.run(["git", *args], capture_output=True, text=True)
+    return p.stdout.strip() if p.returncode == 0 else ""
+
+
+def is_jira_repo():
+    top = os.path.realpath(git("rev-parse", "--show-toplevel")) + os.sep
+    origin = git("remote", "get-url", "origin")
+    roots = [os.path.realpath(os.path.expanduser(r)) + os.sep
+             for r in git("config", "--get-all", "intent.jiraRoot").splitlines() if r]
+    remotes = [r for r in git("config", "--get-all", "intent.jiraRemote").splitlines() if r]
+    return any(top.startswith(r) for r in roots) or any(r in origin for r in remotes)
+
+
+def jira_key():
+    """Linked key of the current branch in a Jira repo; '' when none."""
+    if not is_jira_repo():
+        return ""
+    branch = git("symbolic-ref", "--quiet", "--short", "HEAD")
+    link = git("config", "--get", f"branch.{branch}.jira") if branch else ""
+    if link == "none":
+        return ""
+    if link:
+        return link
+    m = KEY_IN_BRANCH.search(branch)
+    return m.group(1) if m else ""
+
+
+def chain_local(msg_file):
+    """Run the repo's own commit-msg hook, which core.hooksPath would otherwise hide."""
+    local = os.path.join(git("rev-parse", "--git-common-dir"), "hooks", "commit-msg")
+    if os.access(local, os.X_OK) and os.path.realpath(local) != os.path.realpath(__file__):
+        sys.exit(subprocess.run([local, msg_file]).returncode)
+
+
+def main():
+    msg_file = sys.argv[1]
+    if ONLY_CLAUDE and os.environ.get("CLAUDECODE") != "1":
+        chain_local(msg_file)
+        return
+
+    raw = open(msg_file, encoding="utf-8").read()
+    text = raw.split(SCISSORS)[0]
+    lines = [l for l in text.splitlines() if not l.startswith("#")]
+    while lines and not lines[0].strip():
+        lines.pop(0)
+    if not lines or SKIP.match(lines[0]):
+        chain_local(msg_file)
+        return
+
+    subject = SESSION_SCOPE.sub("", lines[0].strip())
+    key = jira_key()
+    if key and not ANY_KEY.match(subject):
+        subject = f"{key}: {subject}"
+    body = lines[1:]
+    if body and body[0].strip():
+        body.insert(0, "")
+
+    problems = []
+    if len(subject) > MAX_SUBJECT:
+        problems.append(f'subject is {len(subject)} chars, max {MAX_SUBJECT}: keep the "what" '
+                        f'(area + observable change), move the "how" into the body')
+    if not WHY.search("\n".join(body)):
+        problems.append('no "Why:" line in the body: state the problem or goal '
+                        '(from the task and the conversation, not the diff); '
+                        'if it is unclear, ask the user')
+    if problems:
+        print("commit-msg: commit rejected (rules: ~/.claude/CLAUDE.md, \"Commit messages\")", file=sys.stderr)
+        print(f"  subject: {subject}", file=sys.stderr)
+        for p in problems:
+            print(f"  - {p}", file=sys.stderr)
+        sys.exit(1)
+
+    fixed = "\n".join([subject, *body]).rstrip() + "\n"
+    if fixed != raw:
+        with open(msg_file, "w", encoding="utf-8") as f:
+            f.write(fixed)
+    chain_local(msg_file)
+
+
+if __name__ == "__main__":
+    main()
