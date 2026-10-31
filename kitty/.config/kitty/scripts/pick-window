@@ -1,0 +1,54 @@
+#!/bin/bash
+# Fuzzy-find a kitty window across all tabs and sessions and focus it.
+# The preview shows the window's screen. Runs in an overlay (ctrl+b w).
+#
+# Everything is read from kitty before fzf starts: `kitty @` talks to kitty
+# over the tty, which fzf owns while it runs.
+set -euo pipefail
+export PATH="/opt/homebrew/bin:/Applications/kitty.app/Contents/MacOS:$PATH"
+
+sessions=${KITTY_SESSIONS_DIR:-$HOME/.local/share/kitty/sessions}
+tmp=$(mktemp -d)
+trap 'rm -rf "$tmp"' EXIT
+
+# Window id -> session name, for sessions saved in $sessions
+touch "$tmp/sessions"
+for f in "$sessions"/*.kitty-session; do
+  [[ -e $f ]] || continue
+  name=$(basename "$f" .kitty-session)
+  kitty @ ls --match "session:^${name}\$" 2>/dev/null |
+    jq -r --arg s "$name" '.[].tabs[].windows[] | "\(.id)\t\($s)"' >>"$tmp/sessions" || true
+done
+
+# id, window title, directory, foreground program (blank for shells)
+kitty @ ls | jq -r '
+  .[].tabs[].windows[] | select(.is_self | not)
+  | .foreground_processes[-1] as $fg
+  | (($fg.cmdline[0] // "") | split("/")[-1] | ltrimstr("-")) as $prog
+  | [ .id,
+      .title,
+      (($fg.cwd // .cwd) | sub("^" + env.HOME; "~")),
+      (if $prog | test("^(zsh|bash|fish|sh)$") then "" else $prog end)
+    ] | @tsv' >"$tmp/windows"
+
+[[ -s $tmp/windows ]] || exit 0
+
+# id <tab> "title  session  ~/dir  program", the rest dimmed
+dim=$'\e[2m' off=$'\e[0m'
+while IFS=$'\t' read -r id title dir prog; do
+  session=$(awk -F'\t' -v id="$id" '$1 == id { print $2; exit }' "$tmp/sessions")
+  mark=' '; [[ -n $session ]] && mark='◆'
+  printf '%s\t%-28.28s %s%s %-12.12s %s %s%s\n' \
+    "$id" "$title" "$dim" "$mark" "$session" "$dir" "$prog" "$off"
+  kitty @ get-text --match "id:$id" --ansi >"$tmp/$id" 2>/dev/null || true
+done <"$tmp/windows" >"$tmp/rows"
+
+choice=$(
+  fzf --ansi --delimiter='\t' --with-nth=2 \
+      --prompt='window › ' --layout=reverse --border=none \
+      --preview="tail -n \$FZF_PREVIEW_LINES $tmp/{1}" \
+      --preview-window=right,55%,border-left \
+      <"$tmp/rows"
+) || exit 0
+
+kitty @ focus-window --match "id:${choice%%$'\t'*}"

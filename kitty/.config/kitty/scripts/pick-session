@@ -1,0 +1,59 @@
+#!/bin/bash
+# Pick a kitty session and switch to it (ctrl+b s, runs in an overlay).
+#
+# Lists open sessions (●), saved session files (○) and git projects under
+# ~/Projects (+). Picking a project writes a session file for it, so it shows
+# up as a saved session afterwards. Session files live outside the dotfiles
+# repo because they hold machine-specific paths.
+set -euo pipefail
+export PATH="/opt/homebrew/bin:/Applications/kitty.app/Contents/MacOS:$PATH"
+
+sessions=${KITTY_SESSIONS_DIR:-$HOME/.local/share/kitty/sessions}
+projects=${KITTY_PROJECTS_DIR:-$HOME/Projects}
+mkdir -p "$sessions"
+
+tmp=$(mktemp -d)
+trap 'rm -rf "$tmp"' EXIT
+touch "$tmp/open" "$tmp/saved" "$tmp/dirs"
+
+for f in "$sessions"/*.kitty-session; do
+  [[ -e $f ]] || continue
+  name=$(basename "$f" .kitty-session)
+  # A session is open when kitty has a window created from it
+  if kitty @ ls --match "session:^${name}\$" >/dev/null 2>&1; then
+    printf 'session\t%s\t● %s\n' "$name" "$name" >>"$tmp/open"
+  else
+    printf 'session\t%s\t○ %s\n' "$name" "$name" >>"$tmp/saved"
+  fi
+  sed -n 's/^cd //p' "$f" | head -n 1 >>"$tmp/dirs"
+done
+
+find "$projects" -maxdepth 3 -name .git -prune 2>/dev/null |
+  sed 's|/\.git$||' | sort | grep -vxF -f "$tmp/dirs" |
+  while read -r dir; do
+    case $dir in "$HOME"/*) shown="~${dir#"$HOME"}" ;; *) shown=$dir ;; esac
+    printf 'project\t%s\t+ %s\n' "$dir" "$shown"
+  done >"$tmp/projects" || true
+
+choice=$(
+  cat "$tmp/open" "$tmp/saved" "$tmp/projects" |
+    fzf --delimiter='\t' --with-nth=3 --tiebreak=index \
+        --prompt='session › ' --layout=reverse --border=none \
+        --header='● open  ○ saved  + new from project'
+) || exit 0
+
+IFS=$'\t' read -r kind value _ <<<"$choice"
+if [[ $kind == project ]]; then
+  name=$(basename "$value")
+  file="$sessions/$name.kitty-session"
+  # Same directory name in two places: qualify with the parent
+  if [[ -e $file ]]; then
+    name="$(basename "$(dirname "$value")")-$name"
+    file="$sessions/$name.kitty-session"
+  fi
+  printf '# Created by pick-session\nlayout splits\ncd %s\nlaunch\n' "$value" >"$file"
+else
+  file="$sessions/$value.kitty-session"
+fi
+
+kitty @ action goto_session "$file"
