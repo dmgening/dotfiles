@@ -18,6 +18,8 @@ TOOLS=(
     "ripgrep"
     "fd"
     "fzf"
+    "git-delta"
+    "difftastic"
     "tmux"
 )
 
