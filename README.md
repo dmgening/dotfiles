@@ -9,6 +9,7 @@ Resurrected by courtesy of [Claude Code](https://claude.ai/code) and vibe-coding
 | Module | Description |
 |--------|-------------|
 | `zsh`  | Zsh config with [zinit](https://github.com/zdharma-continuum/zinit), starship prompt, atuin history, fzf, completions |
+| `fish` | Minimal fish: PATH, dependency-free one-line prompt, atuin/fzf when installed, eza/bat aliases |
 | `mise` | Global runtime versions via [mise](https://mise.jdx.dev): node LTS, python, go, uv, pnpm |
 | `nvim` | Neovim 0.11+ with lazy.nvim, native LSP, treesitter, fzf-lua, oil, catppuccin |
 | `tmux` | tmux 3.x+ with vim-style navigation, session persistence (resurrect + continuum) |
@@ -28,6 +29,7 @@ Resurrected by courtesy of [Claude Code](https://claude.ai/code) and vibe-coding
 
 # Symlink configs to ~
 make zsh
+make fish
 make mise && mise install
 make nvim
 make kitty
