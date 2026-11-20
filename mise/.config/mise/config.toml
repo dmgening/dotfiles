@@ -1,0 +1,26 @@
+#
+# ~/.config/mise/config.toml
+#
+# Global defaults: used wherever a project doesn't pin its own versions
+# (mise.toml, .nvmrc, .python-version, .go-version).
+#
+# `mise use -g tool@version` writes here through the stow symlink, so the
+# change shows up in the repo. Work-only tools go in conf.d/*.toml, stowed
+# from dotfiles-private.
+#
+
+[tools]
+node = "lts"
+python = "3.14"
+go = "latest"
+uv = "latest"
+pnpm = "latest"
+
+[settings]
+# Honour the version files other managers write, so repos that only have
+# .nvmrc or .python-version still get the right runtime.
+idiomatic_version_file_enable_tools = ["node", "python", "go"]
+
+[settings.python]
+# Activate a project's existing uv .venv on cd (never creates one).
+uv_venv_auto = "source"
