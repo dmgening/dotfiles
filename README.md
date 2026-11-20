@@ -9,6 +9,7 @@ Resurrected by courtesy of [Claude Code](https://claude.ai/code) and vibe-coding
 | Module | Description |
 |--------|-------------|
 | `zsh`  | Zsh config with [zinit](https://github.com/zdharma-continuum/zinit), starship prompt, atuin history, fzf, completions |
+| `mise` | Global runtime versions via [mise](https://mise.jdx.dev): node LTS, python, go, uv, pnpm |
 | `nvim` | Neovim 0.11+ with lazy.nvim, native LSP, treesitter, fzf-lua, oil, catppuccin |
 | `tmux` | tmux 3.x+ with vim-style navigation, session persistence (resurrect + continuum) |
 | `kitty`| Kitty terminal with catppuccin themes, splits, Nerd Font |
@@ -27,6 +28,7 @@ Resurrected by courtesy of [Claude Code](https://claude.ai/code) and vibe-coding
 
 # Symlink configs to ~
 make zsh
+make mise && mise install
 make nvim
 make kitty
 make tmux
@@ -41,6 +43,7 @@ Configs follow the [XDG Base Directory](https://wiki.archlinux.org/title/XDG_Bas
 
 ```
 zsh/.config/zsh/          -> ~/.config/zsh/
+mise/.config/mise/        -> ~/.config/mise/
 nvim/.config/nvim/        -> ~/.config/nvim/
 kitty/.config/kitty/      -> ~/.config/kitty/
 tmux/.config/tmux/        -> ~/.config/tmux/

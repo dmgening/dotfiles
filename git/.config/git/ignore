@@ -48,3 +48,11 @@ Session.vim
 # ---------------------------------------------------------------------
 #
 .vscode/
+
+# mise: personal per-project overrides
+# ---------------------------------------------------------------------
+#
+mise.local.toml
+.mise.local.toml
+
+**/.claude/.cc-writes/

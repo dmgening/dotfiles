@@ -6,7 +6,7 @@ Personal dotfiles repo for macOS. Configs are organized as GNU Stow packages and
 
 ## Structure
 
-- Each top-level directory (`zsh/`, `nvim/`, `kitty/`, `tmux/`, `git/`) is a Stow package mirroring `$HOME`
+- Each top-level directory (`zsh/`, `mise/`, `nvim/`, `kitty/`, `tmux/`, `git/`) is a Stow package mirroring `$HOME`
 - Configs follow XDG Base Directory spec (`~/.config/<app>/`)
 - `Makefile` — stow targets for each package
 - `install-macos.sh` — Homebrew-based CLI tool installer
@@ -16,6 +16,7 @@ Personal dotfiles repo for macOS. Configs are organized as GNU Stow packages and
 
 - **Stow layout**: files inside each package directory are placed exactly where they should appear relative to `~`. Don't add files outside the expected XDG paths.
 - **Zsh config.d**: numbered files in `zsh/.config/zsh/config.d/` are sourced in order. Use the numbering scheme (001-049 core, 100+ language/tool, 900+ programs).
+- **Runtimes (mise)**: node, python, go, uv, pnpm come from mise, not Homebrew or pyenv/nvm/gvm. Global versions live in `mise/.config/mise/config.toml`; `mise use -g` writes through the stow symlink, so review the diff. Work-only tools go in `~/.config/mise/conf.d/*.toml` from private packages. zsh activates mise in `config.d/100-mise.sh` (shims in `.zprofile`); fish needs nothing, Homebrew's `vendor_conf.d/mise-activate.fish` does it.
 - **Neovim plugins**: plugin specs go in `nvim/.config/nvim/lua/plugins/`. Each file returns a table for lazy.nvim. Update `lazy-lock.json` after adding plugins.
 - **Secrets**: `zsh/.config/zsh/secrets.sh` is gitignored. Never commit credentials.
 
@@ -23,7 +24,10 @@ Personal dotfiles repo for macOS. Configs are organized as GNU Stow packages and
 
 ```sh
 # Stow a package
-make zsh        # or nvim, kitty, tmux, git, vim
+make zsh        # or mise, nvim, kitty, tmux, git, vim
+
+# Install the runtimes from the global mise config
+mise install
 
 # Install CLI dependencies
 ./install-macos.sh
