@@ -12,7 +12,7 @@ function fish_right_prompt --description 'Background jobs, last command duration
     set -l njobs (count (jobs -g))
     if test $njobs -gt 0
         set_color blue
-        echo -n " $njobs "
+        echo -n \uf013" $njobs "
     end
 
     # nf-fa-hourglass_half
@@ -23,11 +23,11 @@ function fish_right_prompt --description 'Background jobs, last command duration
         test $s -ge 60; and set -a parts (math "floor($s % 3600 / 60)")m
         set -a parts (math "$s % 60")s
         set_color yellow
-        echo -n ' '(string join ' ' $parts)' '
+        echo -n \uf252' '(string join ' ' $parts)' '
     end
 
     # nf-fa-clock
     set_color brblack
-    echo -n ' '(date +%H:%M)
+    echo -n \uf017' '(date +%H:%M)
     set_color normal
 end

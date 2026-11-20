@@ -24,7 +24,7 @@ function fish_prompt --description 'Minimal one-line prompt'
     # nf-oct-git_branch. One * per kind of change comes out of
     # fish_git_prompt; keep one.
     set_color brblack
-    echo -n (fish_git_prompt ' '' %s' | string replace -r '\*+' '*')
+    echo -n (fish_git_prompt ' '\uf418' %s' | string replace -r '\*+' '*')
 
     if set -q VIRTUAL_ENV
         # VIRTUAL_ENV_PROMPT holds the project name for venv and uv
@@ -38,7 +38,7 @@ function fish_prompt --description 'Minimal one-line prompt'
         end
         # nf-dev-python
         set_color brblack
-        echo -n ' '" $venv"
+        echo -n ' '\ue73c" $venv"
     end
 
     test $last_status -eq 0

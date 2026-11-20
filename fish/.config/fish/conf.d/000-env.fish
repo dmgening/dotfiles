@@ -11,3 +11,8 @@
 fish_add_path -Pm $HOME/.local/bin /opt/homebrew/bin /opt/homebrew/sbin $HOME/.orbstack/bin
 
 command -q nvim; and set -gx EDITOR nvim
+
+# bat's themes for a dark and a light background: the same catppuccin
+# flavors kitty switches between.
+set -gx BAT_THEME_DARK 'Catppuccin Macchiato'
+set -gx BAT_THEME_LIGHT 'Catppuccin Latte'
