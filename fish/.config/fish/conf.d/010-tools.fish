@@ -33,16 +33,20 @@ if command -q fzf
     # bat can't ask the terminal for its background from inside a preview
     # and would fall back to a dark theme; auto:system follows the macOS
     # appearance instead, which is what kitty's theme follows too.
+    # eza's icons need a Nerd Font (conf.d/001-terminal.fish).
     set -l bat 'bat --theme=auto:system --color=always --style=numbers --line-range=:300'
-    set -l preview_path "$bat {} 2>/dev/null || eza --tree --level=2 --all --ignore-glob=.git --color=always --icons=always {} 2>/dev/null"
+    set -l icons never
+    test "$nerd_font" = 1; and set icons always
+    set -l tree "eza --tree --level=2 --all --ignore-glob=.git --color=always --icons=$icons"
+    set -l preview_path "$bat {} 2>/dev/null || $tree {} 2>/dev/null"
     set -gx FZF_CTRL_T_OPTS "--preview='$preview_path'"
-    set -gx FZF_ALT_C_OPTS "--preview='eza --tree --level=2 --all --ignore-glob=.git --color=always --icons=always {}'"
+    set -gx FZF_ALT_C_OPTS "--preview='$tree {}'"
     set -gx FZF_EXPANSION_OPTS "--preview='$preview_path'"
 
     # Shift-tab runs fish. Candidates come escaped (My\ File) in field 1;
     # the preview shows up only for ones that exist on disk.
     set -gx FZF_COMPLETION_OPTS \
-        "--preview='set -l f (string unescape -- {1}); $bat -- \$f 2>/dev/null; or eza --tree --level=2 --all --ignore-glob=.git --color=always --icons=always -- \$f 2>/dev/null'" \
+        "--preview='set -l f (string unescape -- {1}); $bat -- \$f 2>/dev/null; or $tree -- \$f 2>/dev/null'" \
         "--bind='start,focus:transform:test -e (string unescape -- {1}) 2>/dev/null; and echo show-preview; or echo hide-preview'"
 
     fzf --fish | source

@@ -11,7 +11,9 @@ function fzf-complete-cmdline --description 'fzf_complete with the command line 
         fzf_complete
         return
     end
+    # nf-oct-terminal, or $ without a Nerd Font.
+    set -l icon '$'
+    test "$nerd_font" = 1; and set icon 
     # fzf_complete escapes its arguments and passes them on to fzf.
-    # nf-oct-terminal
-    fzf_complete --header=\uf489" $cmd"
+    fzf_complete --header="$icon $cmd"
 end
