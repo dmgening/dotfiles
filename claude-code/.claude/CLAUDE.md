@@ -22,7 +22,10 @@
 
 # Knowledge base
 
-- I keep a Zettelkasten vault at @~/Documents/ZettelkastenVault/. Agents may read from it for additional context when helpful (e.g. domains, projects, people, daily notes). Treat it as read-only reference unless I explicitly ask you to modify it.
+- My knowledge bases live in `~/Vaults/`, one vault per context: each employer, personal life, freelance, and so on. When you lack information (domains, projects, people, decisions, daily notes), look in the vault for the current context before guessing or asking me.
+- Each vault has an `AGENTS.md` at its root with its layout and rules for reading and writing. Read it before you work in that vault and follow it.
+- You may write to a vault without asking me, within what its `AGENTS.md` allows. Pick the vault from the conversation's context: the repo, company or client we are working on. If it is unclear which one, ask.
+- Never mix contexts: a note about one company, client or my personal life never goes into another context's vault, and facts from one context's vault never end up in work for another.
 
 # Work
 
