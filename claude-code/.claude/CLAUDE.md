@@ -11,10 +11,12 @@
 
 # Project tooling
 
-- A project's tools and dev dependencies (runtimes, CLIs, linters, formatters, code generators) come from mise, pinned in the project's `mise.toml`: run `mise use <tool>@<version>` in the project root. Not Homebrew, `go install`, `npm i -g`, `pip install`, `curl | sh`, or nvm/pyenv/gvm.
-- Pin a concrete version, not `latest`, and commit `mise.toml`. Never put project tools in the global config (`mise use -g`).
+- A project's tools and dev dependencies (runtimes, CLIs, linters, formatters, code generators) come from mise. Not Homebrew, `go install`, `npm i -g`, `pip install`, `curl | sh`, or nvm/pyenv/gvm.
+- Where the pin goes depends on whether the repo uses mise:
+  - The repo has a `mise.toml` or `.tool-versions`, or it is one of my personal repos (`~/Projects/personal/`): run `mise use <tool>@<version>` from the project root and commit the file it changes.
+  - Otherwise: `mise use --env local <tool>@<version>`, which writes `mise.local.toml`. My global gitignore covers it; never commit it or add any other mise file to the repo.
+- Pin a concrete version, not `latest`. Never put project tools in the global config (`mise use -g`).
 - A tool missing from the mise registry goes through a backend: `go:`, `npm:`, `pipx:`, `cargo:`, `ubi:`.
-- If the project already pins versions in `.tool-versions`, add to that file instead of creating `mise.toml` next to it.
 - Libraries the code imports stay with the language's package manager (`go.mod`, `package.json`, `pyproject.toml`); mise is for the tools that build, check and run the code.
 - If a tool is missing or runs at the wrong version, run `mise install` or `mise exec -- <cmd>` instead of installing it another way.
 
