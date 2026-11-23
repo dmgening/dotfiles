@@ -11,9 +11,11 @@ function fzf-file-widget-cmdline --description 'fzf-file-widget with the command
         fzf-file-widget
         return
     end
+    # nf-oct-terminal, or $ without a Nerd Font.
+    set -l icon '$'
+    test "$nerd_font" = 1; and set icon 
     # The widget pastes FZF_CTRL_T_OPTS into fzf's options as text, so the
     # header gets backslash-escaped. An exported local reaches the widget.
-    # nf-oct-terminal
-    set -lx FZF_CTRL_T_OPTS $FZF_CTRL_T_OPTS --header=(string escape -n -- \uf489" $cmd")
+    set -lx FZF_CTRL_T_OPTS $FZF_CTRL_T_OPTS --header=(string escape -n -- "$icon $cmd")
     fzf-file-widget
 end

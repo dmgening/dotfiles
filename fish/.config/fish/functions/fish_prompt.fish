@@ -3,6 +3,11 @@
 #
 #   ~/P/p/dotfiles  master* ⇡  proj ❯
 #
+# Without a Nerd Font (see conf.d/001-terminal.fish) the icons give way
+# to plain text:
+#
+#   ~/P/p/dotfiles master* ⇡ (proj) ❯
+#
 # When that takes more than half the window, as in a worktree with a long
 # path and branch, ❯ moves to a line of its own:
 #
@@ -18,18 +23,25 @@ function fish_prompt --description 'Minimal prompt, on two lines when it gets lo
     # Must come first: any command below overwrites $status.
     set -l last_status $status
 
+    set -l ssh_fmt '@%s '
+    set -l git_fmt ' %s'
+    set -l venv_fmt ' (%s)'
+    if test "$nerd_font" = 1
+        set ssh_fmt \U000f08c0' %s ' # nf-md-ssh
+        set git_fmt ' '' %s' # nf-oct-git_branch
+        set venv_fmt ' '' %s' # nf-dev-python
+    end
+
     # Everything before the prompt character, as colored pieces.
     set -l info
 
-    # nf-md-ssh
     set -q SSH_TTY
-    and set -a info (set_color brblack)\U000f08c0' '(prompt_hostname)' '
+    and set -a info (set_color brblack)(printf $ssh_fmt (prompt_hostname))
 
     set -a info (set_color blue)(prompt_pwd)
 
-    # nf-oct-git_branch. One * per kind of change comes out of
-    # fish_git_prompt; keep one.
-    set -l git (fish_git_prompt ' '\uf418' %s' | string replace -r '\*+' '*')
+    # One * per kind of change comes out of fish_git_prompt; keep one.
+    set -l git (fish_git_prompt $git_fmt | string replace -r '\*+' '*')
     test -n "$git"
     and set -a info (set_color brblack)$git
 
@@ -43,8 +55,7 @@ function fish_prompt --description 'Minimal prompt, on two lines when it gets lo
             contains -- $venv .venv venv
             and set venv (path basename (path dirname $VIRTUAL_ENV))
         end
-        # nf-dev-python
-        set -a info (set_color brblack)' '\ue73c" $venv"
+        set -a info (set_color brblack)(printf $venv_fmt $venv)
     end
 
     set info (string join '' -- $info)
