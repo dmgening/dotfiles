@@ -22,6 +22,3 @@ require("autocmds")
 require("lazy").setup("plugins", {
   change_detection = { notify = false },
 })
-
--- Initialize the kb harness (commands, keymaps, autocmds)
-require("kb").setup()
