@@ -1,0 +1,32 @@
+# ~/.config/caddy/Caddyfile
+#
+# Local reverse proxy: <name>.localhost -> a service on this Mac. macOS and
+# browsers resolve *.localhost to loopback, so no /etc/hosts entries.
+#
+# Runs as the Homebrew service; `make caddy` links $(brew --prefix)/etc/Caddyfile
+# here. After an edit:
+#   caddy reload --config ~/.config/caddy/Caddyfile
+#
+# Plain HTTP on purpose: browsers treat http://*.localhost as a secure context,
+# and HTTPS would need Caddy's local CA in the keychain (`caddy trust`).
+
+# macOS lets a non-root process bind port 80 only on all interfaces
+# (127.0.0.1:80 needs root), so the port is open to the LAN. Every site
+# imports this to drop anything that does not come from this machine.
+(local_only) {
+	@remote not remote_ip 127.0.0.0/8 ::1
+	abort @remote
+}
+
+http://syncthing.localhost {
+	import local_only
+	reverse_proxy 127.0.0.1:8384 {
+		# Syncthing's GUI checks the Host header against its own address
+		header_up Host {upstream_hostport}
+	}
+}
+
+# Any other name on port 80: close the connection.
+http:// {
+	abort
+}
