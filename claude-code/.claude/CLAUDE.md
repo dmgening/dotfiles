@@ -9,6 +9,15 @@
   - MR descriptions and release notes follow the same order: why, then what, then how.
   - The git `commit-msg` hook (`~/.config/git/hooks`) checks this for your commits: it adds a missing Jira key and drops a session scope like `wip(1a2b3c4d)` itself, and rejects a subject over 72 chars or a body without `Why:`. On a rejection, rewrite the message and commit again; never `--no-verify`.
 
+# Project tooling
+
+- A project's tools and dev dependencies (runtimes, CLIs, linters, formatters, code generators) come from mise, pinned in the project's `mise.toml`: run `mise use <tool>@<version>` in the project root. Not Homebrew, `go install`, `npm i -g`, `pip install`, `curl | sh`, or nvm/pyenv/gvm.
+- Pin a concrete version, not `latest`, and commit `mise.toml`. Never put project tools in the global config (`mise use -g`).
+- A tool missing from the mise registry goes through a backend: `go:`, `npm:`, `pipx:`, `cargo:`, `ubi:`.
+- If the project already pins versions in `.tool-versions`, add to that file instead of creating `mise.toml` next to it.
+- Libraries the code imports stay with the language's package manager (`go.mod`, `package.json`, `pyproject.toml`); mise is for the tools that build, check and run the code.
+- If a tool is missing or runs at the wrong version, run `mise install` or `mise exec -- <cmd>` instead of installing it another way.
+
 # Knowledge base
 
 - I keep a Zettelkasten vault at @~/Documents/ZettelkastenVault/. Agents may read from it for additional context when helpful (e.g. domains, projects, people, daily notes). Treat it as read-only reference unless I explicitly ask you to modify it.
