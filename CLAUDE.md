@@ -6,7 +6,7 @@ Personal dotfiles repo for macOS. Configs are organized as GNU Stow packages and
 
 ## Structure
 
-- Each top-level directory (`zsh/`, `fish/`, `mise/`, `nvim/`, `kitty/`, `tmux/`, `git/`) is a Stow package mirroring `$HOME`
+- Each top-level directory (`zsh/`, `fish/`, `mise/`, `nvim/`, `kitty/`, `tmux/`, `git/`, `caddy/`) is a Stow package mirroring `$HOME`
 - Configs follow XDG Base Directory spec (`~/.config/<app>/`)
 - `Makefile` — stow targets for each package
 - `install-macos.sh` — Homebrew-based CLI tool installer
@@ -51,4 +51,5 @@ This repo is public on GitHub. Nothing employer-specific goes here: company name
 
 - The `zsh/.zshenv` sets `ZDOTDIR` to `~/.config/zsh/runcom` — all zsh runcom files live there, not in `~`
 - Git config uses `[include] path = config.local` for machine-specific settings (email, signing key). The `config.local` file is not tracked.
+- Caddy runs as the Homebrew service, which reads `$(brew --prefix)/etc/Caddyfile`; `make caddy` links it to `~/.config/caddy/Caddyfile`. A non-root process can bind port 80 only on all interfaces, so the port is reachable from the LAN: every site must `import local_only`.
 - Kitty has auto-switching dark/light themes via `dark-theme.auto.conf` and `light-theme.auto.conf`

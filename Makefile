@@ -1,4 +1,4 @@
-.PHONY: all zsh fish mise kitty nvim tmux claude-code skhd
+.PHONY: all zsh fish mise kitty nvim tmux claude-code skhd caddy
 
 all: zsh fish mise nvim kitty tmux claude-code skhd
 
@@ -25,3 +25,10 @@ mise:
 # --no-folding: ~/.claude/hooks and ~/.claude/skills also get links from ~/Projects/dotfiles-private
 claude-code:
 	stow -t ~ --no-folding $@
+
+# Not in `all`: it starts a service on port 80. The Homebrew service reads
+# $(brew --prefix)/etc/Caddyfile, so link that to the stowed config.
+caddy:
+	stow -t ~ --no-folding $@
+	ln -sf ~/.config/caddy/Caddyfile "$$(brew --prefix)/etc/Caddyfile"
+	brew services restart caddy

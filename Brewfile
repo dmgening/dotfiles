@@ -19,6 +19,7 @@ brew "stow"                    # Command-line interface for https://speedtest.ne
 brew "tmux"                    # Terminal multiplexer
 brew "ffmpeg"                  # Play, record, convert, and stream select audio and video codecs
 brew "httpie"                  # User-friendly cURL replacement (command-line HTTP client)
+brew "caddy"                   # Local reverse proxy for *.localhost names (`make caddy`)
 brew "pandoc"                  # Swiss-army knife of markup format conversion
 
 brew "age"                     # Simple, modern, secure file encryption

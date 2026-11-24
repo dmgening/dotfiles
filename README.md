@@ -15,6 +15,7 @@ Resurrected by courtesy of [Claude Code](https://claude.ai/code) and vibe-coding
 | `tmux` | tmux 3.x+ with vim-style navigation, session persistence (resurrect + continuum) |
 | `kitty`| Kitty terminal with catppuccin themes, splits, Nerd Font |
 | `git`  | Git aliases, conditional includes for work profiles |
+| `caddy`| Local [Caddy](https://caddyserver.com) reverse proxy: `syncthing.localhost` and other `*.localhost` names to local services |
 
 ## Requirements
 
@@ -35,6 +36,7 @@ make nvim
 make kitty
 make tmux
 make git
+make caddy   # links the Caddyfile and (re)starts the Homebrew service
 ```
 
 Each `make` target runs `stow -t ~` on the corresponding directory, creating symlinks under `~/.config/`.
