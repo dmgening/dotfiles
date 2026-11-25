@@ -6,7 +6,7 @@ Personal dotfiles repo for macOS. Configs are organized as GNU Stow packages and
 
 ## Structure
 
-- Each top-level directory (`zsh/`, `fish/`, `mise/`, `nvim/`, `kitty/`, `tmux/`, `git/`, `caddy/`) is a Stow package mirroring `$HOME`
+- Each top-level directory (`zsh/`, `fish/`, `mise/`, `nvim/`, `kitty/`, `tmux/`, `git/`, `caddy/`, `lmstudio/`) is a Stow package mirroring `$HOME`; `lmstudio/` is the exception to XDG paths, since launchd reads agents only from `~/Library/LaunchAgents`
 - Configs follow XDG Base Directory spec (`~/.config/<app>/`)
 - `Makefile` — stow targets for each package
 - `install-macos.sh` — Homebrew-based CLI tool installer
