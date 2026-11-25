@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Library/LaunchAgents/local.lms-autoload.plist
+
+  At login, runs ~/.local/bin/lms-autoload once: LM Studio's daemon, server
+  and the small model for fish's `ask`. launchd doesn't expand ~, so sh does.
+  Run it again: launchctl kickstart gui/$(id -u)/local.lms-autoload
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>local.lms-autoload</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/sh</string>
+        <string>-c</string>
+        <string>exec "$HOME/.local/bin/lms-autoload"</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>ProcessType</key>
+    <string>Background</string>
+</dict>
+</plist>

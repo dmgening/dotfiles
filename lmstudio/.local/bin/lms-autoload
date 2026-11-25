@@ -1,0 +1,38 @@
+#!/bin/sh
+#
+# .local/bin/lms-autoload
+#
+# Run at login by ~/Library/LaunchAgents/local.lms-autoload.plist: starts
+# LM Studio's headless daemon and its server on localhost:1234, then loads the
+# small model fish's `ask` uses (keep the two names in sync), so the first
+# question doesn't wait for the load. The model stays loaded until unloaded:
+#   lms unload qwen3.5-4b-mlx
+# Log: ~/Library/Logs/lms-autoload.log
+#
+
+model=qwen3.5-4b-mlx
+lms=$HOME/.lmstudio/bin/lms
+
+exec >>"$HOME/Library/Logs/lms-autoload.log" 2>&1
+echo "$(date '+%F %T') start"
+
+if [ ! -x "$lms" ]; then
+    echo "no $lms: LM Studio is not installed"
+    exit 0
+fi
+
+loaded() {
+    "$lms" ps --json 2>/dev/null | grep -q "\"identifier\":\"$model\""
+}
+
+# Right after login the daemon may take a while to come up: retry.
+tries=0
+until "$lms" daemon up && "$lms" server start && { loaded || "$lms" load "$model" --context-length 8192 -y; }; do
+    tries=$((tries + 1))
+    if [ "$tries" -ge 6 ]; then
+        echo "$(date '+%F %T') gave up after $tries tries"
+        exit 1
+    fi
+    sleep 10
+done
+echo "$(date '+%F %T') $model is loaded"

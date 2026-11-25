@@ -1,4 +1,4 @@
-.PHONY: all zsh fish mise kitty nvim tmux claude-code skhd caddy
+.PHONY: all zsh fish mise kitty nvim tmux claude-code skhd caddy lmstudio
 
 all: zsh fish mise nvim kitty tmux claude-code skhd
 
@@ -32,3 +32,11 @@ caddy:
 	stow -t ~ --no-folding $@
 	ln -sf ~/.config/caddy/Caddyfile "$$(brew --prefix)/etc/Caddyfile"
 	brew services restart caddy
+
+# Not in `all`: it keeps a model in memory from every login. --no-folding:
+# ~/.local/bin and ~/Library/LaunchAgents hold files from elsewhere too.
+# bootout first so launchd reads a changed plist; bootstrap also runs it now.
+lmstudio:
+	stow -t ~ --no-folding $@
+	launchctl bootout gui/$$(id -u)/local.lms-autoload 2>/dev/null || true
+	launchctl bootstrap gui/$$(id -u) ~/Library/LaunchAgents/local.lms-autoload.plist
